@@ -85,6 +85,25 @@
           if (uel) studentName = uel.textContent.trim();
         }
 
+        // Extract USN (Standard pattern: ENGXXCSXXXX)
+        let studentUsn = "";
+        const usnM = document.body.innerText.match(/ENG\d{2}[A-Z]{2}\d{4}/i);
+        if (usnM) studentUsn = usnM[0].toUpperCase();
+
+        // Extract Section (A-L)
+        let studentSection = "H"; // default fallback
+        const secM = document.body.innerText.match(/Section\s*:\s*([A-L])|Sec\s*-\s*([A-L])|Section\s+([A-L])|CSE\s*-\s*([A-L])/i);
+        if (secM) {
+          studentSection = (secM[1] || secM[2] || secM[3] || secM[4]).toUpperCase();
+        }
+
+        // Extract Lab Batch (1 or 2)
+        let studentBatch = 2; // default fallback
+        const batchM = document.body.innerText.match(/Batch\s*:\s*([12])|Batch\s+([12])|B([12])/i);
+        if (batchM) {
+          studentBatch = parseInt(batchM[1] || batchM[2] || batchM[3], 10) || 2;
+        }
+
         const attTable = findAttendanceTable();
         if (!attTable) {
           alert("❌ Cannot find attendance table on this page.");
@@ -136,6 +155,9 @@
         const payload = JSON.stringify({
           student: {
             name: studentName,
+            usn: studentUsn,
+            section: studentSection,
+            labBatch: studentBatch,
             totalConducted: tc,
             totalPresent: tp,
             totalAbsent: tc - tp,

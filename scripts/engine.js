@@ -484,25 +484,59 @@ class WormholeApp {
     try {
       localStorage.setItem("wormhole_dsu_attendance", JSON.stringify(data));
       if (data.student && data.student.name) {
-        localStorage.setItem("wormhole_active_profile_name", data.student.name);
+        const studentName = data.student.name;
+        localStorage.setItem("wormhole_active_profile_name", studentName);
         
-        // Also update name and usn in this.profile if it changed
-        if (this.profile.name !== data.student.name) {
-          this.profile.name = data.student.name;
-          if (data.student.usn) this.profile.usn = data.student.usn;
-          localStorage.setItem("wormhole_student_profile", JSON.stringify(this.profile));
+        const all = this.getAllProfiles();
+        
+        let targetProfile = null;
+        if (all[studentName] && all[studentName].profile) {
+          targetProfile = all[studentName].profile;
+        } else {
+          // Initialize fresh profile using defaults but customized for this student
+          targetProfile = JSON.parse(JSON.stringify(DEFAULT_STUDENT_PROFILE));
+          targetProfile.name = studentName;
+        }
+        
+        // Populate fields extracted from ERP
+        if (data.student.usn) targetProfile.usn = data.student.usn;
+        if (data.student.section) targetProfile.section = data.student.section;
+        if (data.student.labBatch) targetProfile.labBatch = data.student.labBatch;
+
+        // Auto-detect PE-1 elective by checking attendance course list codes
+        const foundElective = ELECTIVES.find((e) =>
+          data.courses.some((c) => c.code === e.code)
+        );
+        if (foundElective) {
+          targetProfile.pe1 = {
+            code: foundElective.code,
+            name: foundElective.name.includes("—") ? foundElective.name.split("—")[1].trim() : foundElective.name,
+            faculty: foundElective.facultyList?.[0]?.name || foundElective.faculty || "",
+            room: foundElective.facultyList?.[0]?.room || foundElective.room || "",
+          };
         }
 
-        const all = this.getAllProfiles();
-        all[data.student.name] = {
+        this.profile = targetProfile;
+        localStorage.setItem("wormhole_student_profile", JSON.stringify(this.profile));
+
+        all[studentName] = {
           profile: this.profile,
           attendance: this.attendance
         };
         localStorage.setItem("wormhole_all_profiles", JSON.stringify(all));
+        
+        this.currentSection = this.profile.section;
       }
-    } catch (e) {}
-    this.renderAttendanceDashboard();
+    } catch (e) {
+      console.error("Error saving attendance/profile:", e);
+    }
+    this.renderProfileBanner();
+    this.buildSectionPigeonholes();
     this.renderChronosGrid();
+    this.renderElectives();
+    this.renderAnalytics();
+    this.renderSquadSync();
+    this.renderAttendanceDashboard();
   }
 
   initAttendanceEngine() {
@@ -1170,6 +1204,26 @@ class WormholeApp {
       var uel=document.querySelector('.user-name,.student-name,[class*=username],[class*=user-info]');
       if(uel)sName=uel.textContent.trim();
     }
+
+    // Extract USN
+    var studentUsn='';
+    var usnM=document.body.innerText.match(/ENG\\\\d{2}[A-Z]{2}\\\\d{4}/i);
+    if(usnM)studentUsn=usnM[0].toUpperCase();
+
+    // Extract Section (A-L)
+    var studentSection='H';
+    var secM=document.body.innerText.match(/Section\\\\s*:\\\\s*([A-L])|Sec\\\\s*-\\\\s*([A-L])|Section\\\\s+([A-L])|CSE\\\\s*-\\\\s*([A-L])/i);
+    if(secM){
+      studentSection=(secM[1]||secM[2]||secM[3]||secM[4]).toUpperCase();
+    }
+
+    // Extract Lab Batch
+    var studentBatch=2;
+    var batchM=document.body.innerText.match(/Batch\\\\s*:\\\\s*([12])|Batch\\\\s+([12])|B([12])/i);
+    if(batchM){
+      studentBatch=parseInt(batchM[1]||batchM[2]||batchM[3],10)||2;
+    }
+
     // Find attendance table
     var attTable=null;
     document.querySelectorAll('table').forEach(function(t){
@@ -1199,7 +1253,7 @@ class WormholeApp {
     if(!courses.length){alert('\u274c No course rows found. Navigate to Attendance Summary > Attendance Summary tab.');return;}
     var overallPct=tc>0?parseFloat(((tp/tc)*100).toFixed(2)):100;
     var payload=JSON.stringify({
-      student:{name:sName,totalConducted:tc,totalPresent:tp,totalAbsent:tc-tp,overallPct:overallPct,syncedAt:new Date().toISOString()},
+      student:{name:sName,usn:studentUsn,section:studentSection,labBatch:studentBatch,totalConducted:tc,totalPresent:tp,totalAbsent:tc-tp,overallPct:overallPct,syncedAt:new Date().toISOString()},
       courses:courses
     });
     var encoded=btoa(unescape(encodeURIComponent(payload)));
