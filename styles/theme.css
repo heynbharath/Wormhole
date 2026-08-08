@@ -1,0 +1,147 @@
+/* ===================================================================
+   WORMHOLE COSMIC THEME & DESIGN TOKENS
+   Deep Space Aesthetics · Glassmorphism · Cyberpunk Neon Signals
+   =================================================================== */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:ital,wght@0,400;0,600;0,700;1,400&family=Space+Grotesk:wght@500;600;700&family=Syne:wght@700;800&display=swap');
+
+:root {
+  /* Surfaces & Void */
+  --space-black: #05070D;
+  --space-dark: #090D18;
+  --space-card: rgba(12, 17, 30, 0.75);
+  --space-card-hover: rgba(18, 25, 46, 0.85);
+  --space-border: rgba(255, 255, 255, 0.08);
+  --space-border-strong: rgba(255, 255, 255, 0.16);
+  --space-border-lit: rgba(0, 240, 255, 0.4);
+
+  /* Primary Quantum Accents */
+  --neon-cyan: #00F0FF;
+  --neon-cyan-glow: rgba(0, 240, 255, 0.35);
+  --neon-purple: #9D00FF;
+  --neon-purple-glow: rgba(157, 0, 255, 0.35);
+  
+  /* Signal Classifications */
+  --free: #00FF9D;
+  --free-bg: rgba(0, 255, 157, 0.12);
+  --free-border: rgba(0, 255, 157, 0.4);
+  --free-glow: rgba(0, 255, 157, 0.25);
+
+  --skiphigh: #FFB800;
+  --skiphigh-bg: rgba(255, 184, 0, 0.12);
+  --skiphigh-border: rgba(255, 184, 0, 0.4);
+
+  --skiplow: #FF8800;
+  --skiplow-bg: rgba(255, 136, 0, 0.10);
+  --skiplow-border: rgba(255, 136, 0, 0.3);
+
+  --locked: #FF3366;
+  --locked-bg: rgba(255, 51, 102, 0.08);
+  --locked-border: rgba(255, 51, 102, 0.25);
+
+  --break-pattern: repeating-linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.03),
+    rgba(255, 255, 255, 0.03) 6px,
+    rgba(255, 255, 255, 0.06) 6px,
+    rgba(255, 255, 255, 0.06) 12px
+  );
+
+  /* Text Typography */
+  --text-primary: #FFFFFF;
+  --text-secondary: #8E9BB5;
+  --text-muted: #54607B;
+
+  /* Typography Families */
+  --font-display: 'Syne', sans-serif;
+  --font-heading: 'Space Grotesk', sans-serif;
+  --font-body: 'Inter', -apple-system, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+
+  /* Radii & Geometry */
+  --radius-sm: 6px;
+  --radius-md: 12px;
+  --radius-lg: 18px;
+  --radius-pill: 9999px;
+
+  /* Transitions */
+  --ease-spring: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Base Styles */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  scroll-behavior: smooth;
+  background-color: var(--space-black);
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+}
+
+body {
+  background-color: var(--space-black);
+  background-image: 
+    radial-gradient(circle at 50% 0%, rgba(157, 0, 255, 0.12) 0%, transparent 60%),
+    radial-gradient(circle at 10% 40%, rgba(0, 240, 255, 0.07) 0%, transparent 50%),
+    radial-gradient(circle at 90% 80%, rgba(0, 255, 157, 0.05) 0%, transparent 50%);
+  min-height: 100vh;
+  overflow-x: hidden;
+  position: relative;
+}
+
+/* Custom Cosmic Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: var(--space-black);
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--neon-cyan);
+  box-shadow: 0 0 10px var(--neon-cyan-glow);
+}
+
+/* Keyframe Animations */
+@keyframes pulseGlow {
+  0%, 100% {
+    box-shadow: 0 0 15px rgba(0, 240, 255, 0.3);
+    border-color: rgba(0, 240, 255, 0.6);
+  }
+  50% {
+    box-shadow: 0 0 30px rgba(0, 240, 255, 0.65), inset 0 0 15px rgba(0, 240, 255, 0.2);
+    border-color: var(--neon-cyan);
+  }
+}
+
+@keyframes radarSweep {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes floatSubtle {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-6px); }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.anim-float {
+  animation: floatSubtle 4s ease-in-out infinite;
+}
+
+.anim-pulse {
+  animation: pulseGlow 2.5s infinite;
+}
