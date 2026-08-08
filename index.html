@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Wormhole — Minimal Spacetime Alignment Engine</title>
-  <meta name="description" content="Minimalist, high-velocity campus schedule alignment engine for Dayananda Sagar University CSE Sem 5.">
+  <title>Wormhole — Autonomous Spacetime Coordination Engine</title>
+  <meta name="description" content="YC-grade zero-friction schedule intersection engine for Dayananda Sagar University CSE Sem 5.">
   <link rel="stylesheet" href="styles/theme.css">
   <link rel="stylesheet" href="styles/components.css">
 </head>
@@ -16,10 +16,14 @@
       <a href="#" class="brand-wrap">
         <div class="brand-icon">⌘</div>
         <span>Wormhole</span>
-        <span class="badge-version">v3.0 · DSU</span>
+        <span class="badge-version">v4.0 · DSU</span>
       </a>
 
       <div class="nav-controls">
+        <button class="nav-btn" onclick="window.openCommandPalette()" title="Press ⌘K or Ctrl+K">
+          🔍 Search <span class="kbd-badge">⌘K</span>
+        </button>
+
         <div class="status-pill">
           <span class="status-dot"></span>
           <span id="liveClockTime">--:--:--</span>
@@ -34,26 +38,26 @@
     </div>
   </header>
 
-  <!-- Minimalist Hero Section with Spacetime Mesh Canvas -->
+  <!-- Minimalist Hero Section with Gravitational Singularity Canvas -->
   <section class="hero-wrapper">
     <canvas id="vortexCanvas"></canvas>
 
     <div class="hero-body">
       <div class="hero-badge">
-        <span>●</span> Dayananda Sagar University · CSE Sem 5
+        <span>●</span> Dayananda Sagar University · CSE Sem 5 · Autonomous Spacetime
       </div>
-      <h1 class="hero-title">Bend Spacetime.<br>Find the Overlap.</h1>
+      <h1 class="hero-title">Bend Spacetime.<br>Coordinate Your Squad.</h1>
       <p class="hero-sub">
-        Zero-friction schedule intersection engine. Office hours are 100% free.<br>
-        Instant cross-section alignment across all 12 batches.
+        Zero-friction multi-section schedule intersection. Office hours are 100% free.<br>
+        Live campus radar beacon & instant 2–8 batch squad overlap calculation.
       </p>
 
-      <div style="display:flex; align-items:center; justify-content:center; gap:10px;">
-        <button class="btn-solid" onclick="document.querySelector('[data-view=\'rift\']').click(); window.scrollTo({top: 360, behavior: 'smooth'});">
-          Open The Rift →
+      <div style="display:flex; align-items:center; justify-content:center; gap:10px; flex-wrap:wrap;">
+        <button class="btn-solid" onclick="document.querySelector('[data-view=\'squad\']').click(); window.scrollTo({top: 480, behavior: 'smooth'});">
+          Launch Squad Sync →
         </button>
-        <button class="btn-outline" onclick="document.querySelector('[data-view=\'chronos\']').click(); window.scrollTo({top: 360, behavior: 'smooth'});">
-          View Timetable
+        <button class="btn-outline" onclick="window.openCommandPalette();">
+          Quick Command <span class="kbd-badge" style="background:rgba(255,255,255,0.15); color:#FFF;">⌘K</span>
         </button>
       </div>
     </div>
@@ -62,75 +66,82 @@
   <!-- Main Workspace -->
   <main class="container">
 
-    <!-- Segmented Control View Switcher -->
+    <!-- Quantum Beacon Live Campus Radar HUD -->
+    <section class="radar-hud">
+      <div class="radar-card">
+        <div class="radar-title">
+          <span>Active Period Radar</span>
+          <span class="status-dot animate-pulse"></span>
+        </div>
+        <div id="beaconCountdown" class="radar-value">Calculating...</div>
+        <div class="radar-sub">Real-time interval countdown</div>
+      </div>
+
+      <div class="radar-card">
+        <div class="radar-title">
+          <span>Free Right Now Across Campus</span>
+          <span class="kbd-badge" style="color:var(--free-text);">100% FREE</span>
+        </div>
+        <div id="beaconFreeSections" class="beacon-chips-wrap">
+          <span style="color:var(--text-dim); font-size:12px;">Scanning 12 sections...</span>
+        </div>
+      </div>
+
+      <div class="radar-card">
+        <div class="radar-title">
+          <span>Shared Lunch Nexus</span>
+          <span class="kbd-badge">75 MIN</span>
+        </div>
+        <div class="radar-value">12:35 PM – 01:50 PM</div>
+        <div class="radar-sub">Guaranteed daily alignment across all batches</div>
+      </div>
+    </section>
+
+    <!-- Segmented View Switcher -->
     <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px; margin-bottom:20px;">
       <div class="segmented-nav">
-        <button class="seg-btn active" data-view="rift">The Rift <span class="kbd-badge">1</span></button>
-        <button class="seg-btn" data-view="chronos">Chronos Grid <span class="kbd-badge">2</span></button>
+        <button class="seg-btn active" data-view="squad">Squad Sync (2-8 Batches) <span class="kbd-badge">1</span></button>
+        <button class="seg-btn" data-view="chronos">Chronos Grid (Single Batch) <span class="kbd-badge">2</span></button>
         <button class="seg-btn" data-view="electives">PE-1 Electives <span class="kbd-badge">3</span></button>
         <button class="seg-btn" data-view="docs">Engineering Specs <span class="kbd-badge">4</span></button>
       </div>
 
       <div style="font-family:var(--font-mono); font-size:11px; color:var(--text-dim);">
-        Shortcut: Press <span class="kbd-badge">A</span>–<span class="kbd-badge">L</span> to switch section
+        Shortcuts: <span class="kbd-badge">1–4</span> Views · <span class="kbd-badge">A–L</span> Section · <span class="kbd-badge">⌘K</span> Search
       </div>
     </div>
 
-    <!-- VIEW 1: THE RIFT (Dual Overlap Comparison) -->
-    <section id="panel-rift" class="view-panel active">
-      <div class="card-minimal rift-header-card">
-        <div class="rift-pickers">
-          <div>
-            <div style="font-family:var(--font-mono); font-size:11px; color:var(--text-dim); margin-bottom:4px;">Primary Section</div>
-            <select id="riftSecA" class="select-minimal"></select>
-          </div>
-
-          <div style="color:var(--text-dim); font-size:13px; font-weight:600; padding:0 4px;">&times;</div>
-
-          <div>
-            <div style="font-family:var(--font-mono); font-size:11px; color:var(--text-dim); margin-bottom:4px;">Compare With</div>
-            <select id="riftSecB" class="select-minimal"></select>
-          </div>
+    <!-- VIEW 1: SQUAD SYNC (Multi-Section 2-8 Batches) -->
+    <section id="panel-squad" class="view-panel active">
+      <div class="card-minimal squad-header-card">
+        <div class="squad-chips-wrap">
+          <span style="font-family:var(--font-mono); font-size:11.5px; color:var(--text-dim); margin-right:4px;">Active Squad:</span>
+          <div id="squadChipsContainer" style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;"></div>
+          <select id="addSquadSectionSelect" class="select-minimal"></select>
         </div>
 
-        <div id="riftSyncScore" class="sync-score-badge">
-          Calculating alignment...
-        </div>
-      </div>
-
-      <!-- Universal Campus Anchors -->
-      <div class="anchors-strip">
-        <div class="card-minimal anchor-box">
-          <div class="anchor-tag">Daily Morning Break</div>
-          <div class="anchor-time">10:20 AM – 10:45 AM</div>
-          <div class="anchor-desc">25 min guaranteed short interval across all batches</div>
-        </div>
-        <div class="card-minimal anchor-box">
-          <div class="anchor-tag">Midday Lunch Nexus</div>
-          <div class="anchor-time">12:35 PM – 01:50 PM</div>
-          <div class="anchor-desc">75 min universal campus lunch overlap</div>
-        </div>
-        <div class="card-minimal anchor-box">
-          <div class="anchor-tag">Saturday Horizon</div>
-          <div class="anchor-time">10:45 AM – 04:20 PM</div>
-          <div class="anchor-desc">Full afternoon allocated for Soft Skills</div>
+        <div style="display:flex; align-items:center; gap:10px;">
+          <div id="squadSyncScoreBadge" class="sync-score-badge">Computing...</div>
+          <button id="copyShareLinkBtn" class="btn-outline" style="font-size:12px; padding:6px 12px;">
+            🔗 Share Squad Link
+          </button>
         </div>
       </div>
 
       <!-- Ranked Overlaps Feed -->
       <div style="display:flex; align-items:center; justify-content:space-between; margin-top:24px;">
-        <h3 style="font-size:15px; font-weight:600; color:var(--text-main);">Ranked Overlap Windows</h3>
-        <span style="font-family:var(--font-mono); font-size:11.5px; color:var(--text-dim);">Sorted by quality & duration</span>
+        <h3 style="font-size:15px; font-weight:600; color:var(--text-main);">Ranked Collective Free Windows</h3>
+        <span style="font-family:var(--font-mono); font-size:11.5px; color:var(--text-dim);">When everyone in the squad is available</span>
       </div>
 
-      <ul id="riftRankList" class="rank-feed"></ul>
+      <ul id="squadRankList" class="rank-feed"></ul>
 
-      <!-- Dual Overlap Matrix -->
+      <!-- Multi-Squad Heatmap Matrix -->
       <div style="display:flex; align-items:center; justify-content:space-between; margin-top:28px;">
-        <h3 style="font-size:15px; font-weight:600; color:var(--text-main);">Split Spacetime Matrix</h3>
+        <h3 style="font-size:15px; font-weight:600; color:var(--text-main);">Collective Spacetime Matrix</h3>
       </div>
       <div class="matrix-container">
-        <table id="riftOverlayTable" class="matrix-table"></table>
+        <table id="squadOverlayTable" class="matrix-table"></table>
       </div>
     </section>
 
@@ -139,16 +150,29 @@
       <!-- Section Selector -->
       <div class="section-strip" id="sectionPigeonholes"></div>
 
-      <!-- Header Card with ICS Export -->
-      <div class="card-minimal" style="padding:16px 20px; margin-bottom:16px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px;">
+      <!-- Header Card with Attendance Friction Stats & ICS Export -->
+      <div class="card-minimal" style="padding:18px 20px; margin-bottom:16px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:14px;">
         <div>
           <h2 id="chronosSectionTitle" style="font-size:18px; font-weight:700; color:var(--text-main);">Section 5H</h2>
           <p id="chronosSectionMeta" style="font-size:12.5px; color:var(--text-muted); margin-top:2px;"></p>
         </div>
 
-        <button id="exportIcsBtn" class="btn-outline" style="font-size:12.5px; padding:6px 14px;">
-          📅 Add to Calendar (.ICS)
-        </button>
+        <div style="display:flex; align-items:center; gap:16px; flex-wrap:wrap;">
+          <div style="display:flex; align-items:center; gap:10px;">
+            <div style="text-align:right;">
+              <div style="font-family:var(--font-mono); font-size:10px; color:var(--text-dim); text-transform:uppercase;">100% Free Time</div>
+              <div id="analyticsFreeHours" style="font-size:14px; font-weight:700; color:var(--free-text);">-- hrs</div>
+            </div>
+            <div style="text-align:right; margin-left:8px;">
+              <div style="font-family:var(--font-mono); font-size:10px; color:var(--text-dim); text-transform:uppercase;">PE-1 Flex Shift</div>
+              <div id="analyticsFlexHours" style="font-size:14px; font-weight:700; color:var(--flex-text);">-- hrs</div>
+            </div>
+          </div>
+
+          <button id="exportIcsBtn" class="btn-outline" style="font-size:12.5px; padding:6px 14px;">
+            📅 Add to Calendar (.ICS)
+          </button>
+        </div>
       </div>
 
       <!-- Clean Minimal Legend -->
@@ -244,13 +268,13 @@
           <a href="ARCHITECTURE.md" target="_blank" class="card-minimal" style="padding:16px; text-decoration:none; display:block;">
             <div style="font-family:var(--font-mono); font-size:10.5px; color:var(--free-text);">ENGINEERING</div>
             <div style="font-size:14px; font-weight:600; color:var(--text-main); margin:4px 0;">Technical Specs →</div>
-            <div style="font-size:12px; color:var(--text-dim);">Intersection algorithm & Web Audio synthesis.</div>
+            <div style="font-size:12px; color:var(--text-dim);">N-way Squad intersection & Web Audio synthesis.</div>
           </a>
 
           <a href="ROADMAP.md" target="_blank" class="card-minimal" style="padding:16px; text-decoration:none; display:block;">
             <div style="font-family:var(--font-mono); font-size:10.5px; color:var(--flex-text);">EVOLUTION</div>
             <div style="font-size:14px; font-weight:600; color:var(--text-main); margin:4px 0;">Roadmap →</div>
-            <div style="font-size:12px; color:var(--text-dim);">From v1.0 to v3.0 Autonomous Campus Mesh.</div>
+            <div style="font-size:12px; color:var(--text-dim);">From v1.0 to v4.0 Flagship Operating System.</div>
           </a>
         </div>
       </div>
@@ -258,12 +282,24 @@
 
   </main>
 
+  <!-- Command Palette Modal (⌘K) -->
+  <div id="commandPaletteModal" class="cmd-backdrop">
+    <div class="cmd-box">
+      <div class="cmd-input-wrap">
+        <span style="color:var(--text-dim);">🔍</span>
+        <input type="text" id="cmdSearchInput" class="cmd-input" placeholder="Type a section, course, professor, or action...">
+        <span class="kbd-badge">ESC to close</span>
+      </div>
+      <div id="cmdSearchResults" class="cmd-results"></div>
+    </div>
+  </div>
+
   <!-- Minimalist Footer -->
   <footer class="app-footer">
     <div class="container">
       <p class="footer-copy">
         WORMHOLE · Department of Computer Science & Engineering · Dayananda Sagar University<br>
-        Odd Semester 2026–27 · 100% Client-Side Engine · Zero Dependencies
+        Odd Semester 2026–27 · 100% Client-Side Engine · Zero Dependencies · Office Hours are 100% Free
       </p>
     </div>
   </footer>

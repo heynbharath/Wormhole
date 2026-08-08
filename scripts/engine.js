@@ -1,6 +1,6 @@
 /**
- * WORMHOLE Minimalist Engine
- * Spacetime Overlap Analytics, Live Radar, Keyboard Shortcuts & ICS Sync.
+ * WORMHOLE Flagship Spacetime Engine
+ * Multi-Section Squad Sync (2-8 batches), Live Quantum Radar Beacon, Command Palette (⌘K), & Magic URLs.
  */
 
 function categorizePeriod(label) {
@@ -14,62 +14,253 @@ function categorizePeriod(label) {
 }
 
 const CAT_LEVELS = { free: 3, skiphigh: 2, skiplow: 1, fixed: 0 };
-const CAT_LABELS = { free: "FREE", skiphigh: "FLEX · PE-1", skiplow: "SKIP · CTS", fixed: "" };
+const CAT_LABELS = { free: "FREE · 100%", skiphigh: "FLEX · PE-1", skiplow: "SKIP · CTS", fixed: "" };
 
 class WormholeApp {
   constructor() {
     this.currentSection = "H";
-    this.secA = "H";
-    this.secB = "L";
+    this.squad = ["H", "L", "A"]; // Default multi-section squad
     this.searchQuery = "";
     this.vortex = null;
+    this.commandPaletteOpen = false;
 
     this.init();
   }
 
   init() {
-    // Initialize wireframe canvas
+    // 1. Initialize Gravitational Singularity Canvas
     this.vortex = new WormholeVortex("vortexCanvas");
 
-    // Build controls & views
-    this.buildSectionPigeonholes();
-    this.buildRiftSelectors();
+    // 2. Parse URL Hash State (e.g. #squad=H,L,A&sec=H)
+    this.parseURLHash();
+
+    // 3. Setup UI & Modules
     this.initNavigation();
     this.initAudioToggle();
-    this.initSearch();
     this.initKeyboardShortcuts();
+    this.initCommandPalette();
+    this.initSquadSync();
+    this.buildSectionPigeonholes();
     this.initICSExporter();
+    this.initShareLink();
+    this.initSearch();
 
-    // Render views
+    // 4. Render Initial Views
     this.renderChronosGrid();
-    this.renderTheRift();
+    this.renderSquadSync();
     this.renderElectives();
+    this.renderAnalytics();
 
-    // Start live clock radar
+    // 5. Start Live Quantum Beacon Clock
     this.startLiveRadar();
   }
 
-  /* ===================== KEYBOARD NAVIGATION ===================== */
+  /* ===================== URL HASH STATE SERIALIZATION ===================== */
+  parseURLHash() {
+    const hash = window.location.hash.replace("#", "");
+    if (!hash) return;
+
+    const params = new URLSearchParams(hash);
+    if (params.has("squad")) {
+      const s = params.get("squad").split(",").filter((k) => SECTIONS[k.toUpperCase()]);
+      if (s.length >= 2) this.squad = s.map((k) => k.toUpperCase());
+    }
+    if (params.has("sec")) {
+      const s = params.get("sec").toUpperCase();
+      if (SECTIONS[s]) this.currentSection = s;
+    }
+  }
+
+  updateURLHash() {
+    const params = new URLSearchParams();
+    params.set("squad", this.squad.join(","));
+    params.set("sec", this.currentSection);
+    history.replaceState(null, "", "#" + params.toString());
+  }
+
+  initShareLink() {
+    const btn = document.getElementById("copyShareLinkBtn");
+    if (!btn) return;
+    btn.addEventListener("click", () => {
+      this.updateURLHash();
+      navigator.clipboard.writeText(window.location.href).then(() => {
+        WormholeAudio.resonance();
+        btn.textContent = "✓ Link Copied!";
+        setTimeout(() => {
+          btn.innerHTML = "🔗 Share Squad Link";
+        }, 2000);
+      });
+    });
+  }
+
+  /* ===================== COMMAND PALETTE (⌘K) ===================== */
+  initCommandPalette() {
+    const modal = document.getElementById("commandPaletteModal");
+    const input = document.getElementById("cmdSearchInput");
+    const results = document.getElementById("cmdSearchResults");
+    if (!modal || !input || !results) return;
+
+    window.openCommandPalette = () => {
+      WormholeAudio.tick();
+      this.commandPaletteOpen = true;
+      modal.classList.add("open");
+      input.value = "";
+      input.focus();
+      this.renderCommandResults("");
+    };
+
+    window.closeCommandPalette = () => {
+      this.commandPaletteOpen = false;
+      modal.classList.remove("open");
+    };
+
+    modal.addEventListener("click", (e) => {
+      if (e.target === modal) window.closeCommandPalette();
+    });
+
+    input.addEventListener("input", (e) => {
+      this.renderCommandResults(e.target.value.trim());
+    });
+  }
+
+  renderCommandResults(query) {
+    const results = document.getElementById("cmdSearchResults");
+    if (!results) return;
+    results.innerHTML = "";
+
+    const q = query.toLowerCase();
+    const items = [];
+
+    // Search Sections
+    Object.keys(SECTIONS).forEach((k) => {
+      const s = SECTIONS[k];
+      if (!q || `section 5${k} ${s.advisor} ${s.room}`.toLowerCase().includes(q)) {
+        items.push({
+          type: "Section",
+          title: `Jump to Section 5${k}`,
+          sub: `Advisor: ${s.advisor} · Room: ${s.room}`,
+          badge: `5${k}`,
+          action: () => {
+            this.currentSection = k;
+            this.buildSectionPigeonholes();
+            this.renderChronosGrid();
+            this.renderAnalytics();
+            document.querySelector('[data-view="chronos"]').click();
+          },
+        });
+      }
+    });
+
+    // Search Courses across all sections
+    const seenCourses = new Set();
+    Object.values(SECTIONS).forEach((sec) => {
+      (sec.courses || []).forEach((c) => {
+        if (seenCourses.has(c.code)) return;
+        seenCourses.add(c.code);
+        if (!q || `${c.code} ${c.name} ${c.faculty}`.toLowerCase().includes(q)) {
+          items.push({
+            type: "Course",
+            title: `${c.code}: ${c.name}`,
+            sub: `Faculty: ${c.faculty}`,
+            badge: "COURSE",
+            action: () => {
+              document.querySelector('[data-view="chronos"]').click();
+              const filterInput = document.getElementById("facultySearchInput");
+              if (filterInput) {
+                filterInput.value = c.code;
+                filterInput.dispatchEvent(new Event("input"));
+              }
+            },
+          });
+        }
+      });
+    });
+
+    // Quick Actions
+    if (!q || "export ics calendar download".includes(q)) {
+      items.push({
+        type: "Action",
+        title: `Export Section 5${this.currentSection} Calendar (.ICS)`,
+        sub: "Sync timetable to Apple Calendar, Google Calendar or Outlook",
+        badge: "CALENDAR",
+        action: () => {
+          const exportBtn = document.getElementById("exportIcsBtn");
+          if (exportBtn) exportBtn.click();
+        },
+      });
+    }
+
+    if (!q || "squad compare sync".includes(q)) {
+      items.push({
+        type: "Action",
+        title: "Open Multi-Section Squad Sync",
+        sub: `Currently comparing ${this.squad.map((k) => "5" + k).join(" + ")}`,
+        badge: "SQUAD",
+        action: () => {
+          document.querySelector('[data-view="squad"]').click();
+        },
+      });
+    }
+
+    if (items.length === 0) {
+      results.innerHTML = `<div style="padding:24px; text-align:center; color:var(--text-dim); font-size:13px;">No results found for "${query}"</div>`;
+      return;
+    }
+
+    items.slice(0, 8).forEach((item) => {
+      const div = document.createElement("div");
+      div.className = "cmd-item";
+      div.innerHTML = `
+        <div style="flex:1;">
+          <div style="font-weight:600; color:var(--text-main); font-size:13.5px;">${item.title}</div>
+          <div style="font-size:11.5px; color:var(--text-dim); margin-top:2px;">${item.sub}</div>
+        </div>
+        <span class="kbd-badge" style="font-size:10px;">${item.badge}</span>
+      `;
+      div.addEventListener("click", () => {
+        WormholeAudio.tick();
+        window.closeCommandPalette();
+        item.action();
+      });
+      results.appendChild(div);
+    });
+  }
+
+  /* ===================== KEYBOARD SHORTCUTS ===================== */
   initKeyboardShortcuts() {
     window.addEventListener("keydown", (e) => {
-      // Don't trigger if typing in search input
+      // ⌘K / Ctrl+K Command Palette
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
+        e.preventDefault();
+        if (this.commandPaletteOpen) window.closeCommandPalette();
+        else window.openCommandPalette();
+        return;
+      }
+
+      if (e.key === "Escape" && this.commandPaletteOpen) {
+        window.closeCommandPalette();
+        return;
+      }
+
       if (e.target.tagName === "INPUT" || e.target.tagName === "SELECT") return;
 
       const key = e.key.toUpperCase();
 
-      // Number keys 1-4 switch tabs
+      // Number keys 1-4 switch views
       if (["1", "2", "3", "4"].includes(key)) {
-        const views = ["rift", "chronos", "electives", "docs"];
+        const views = ["squad", "chronos", "electives", "docs"];
         const btn = document.querySelector(`[data-view="${views[Number(key) - 1]}"]`);
         if (btn) btn.click();
       }
 
-      // Letter keys A-L switch sections
+      // Letter keys A-L switch section in Chronos
       if (Object.keys(SECTIONS).includes(key)) {
         WormholeAudio.tick();
         this.currentSection = key;
+        this.updateURLHash();
         this.buildSectionPigeonholes();
         this.renderChronosGrid();
+        this.renderAnalytics();
         const chronosTab = document.querySelector('[data-view="chronos"]');
         if (chronosTab) chronosTab.click();
       }
@@ -117,10 +308,12 @@ class WormholeApp {
     });
   }
 
-  /* ===================== LIVE RADAR CLOCK ===================== */
+  /* ===================== LIVE QUANTUM BEACON RADAR ===================== */
   startLiveRadar() {
     const clockEl = document.getElementById("liveClockTime");
     const statusEl = document.getElementById("livePeriodStatus");
+    const countdownEl = document.getElementById("beaconCountdown");
+    const freeSectionsList = document.getElementById("beaconFreeSections");
 
     const tickClock = () => {
       const now = new Date();
@@ -133,34 +326,73 @@ class WormholeApp {
       const currentDayName = DAYS[dayIndex - 1];
 
       let activePeriod = null;
+      let remainingSec = 0;
+      const currentTotalSec = now.getHours() * 3600 + now.getMinutes() * 60 + now.getSeconds();
       const currentTotalMin = now.getHours() * 60 + now.getMinutes();
 
       PERIODS.forEach((p) => {
         const [sh, sm] = p.start.split(":").map(Number);
         const [eh, em] = p.end.split(":").map(Number);
-        const startMin = sh * 60 + sm;
-        const endMin = eh * 60 + em;
+        const startSec = sh * 3600 + sm * 60;
+        const endSec = eh * 3600 + em * 60;
 
-        if (currentTotalMin >= startMin && currentTotalMin < endMin) {
+        if (currentTotalSec >= startSec && currentTotalSec < endSec) {
           activePeriod = p;
+          remainingSec = endSec - currentTotalSec;
         }
       });
+
+      // Update Live Period Countdown HUD
+      if (countdownEl) {
+        if (activePeriod) {
+          const remMin = Math.floor(remainingSec / 60);
+          const remSec = remainingSec % 60;
+          countdownEl.textContent = `${remMin}m ${String(remSec).padStart(2, "0")}s left`;
+        } else {
+          countdownEl.textContent = "Outside Academic Hours";
+        }
+      }
 
       if (statusEl) {
         if (dayIndex === 0) {
           statusEl.textContent = "Sunday · Off Grid";
         } else if (activePeriod) {
-          statusEl.textContent = `Period ${activePeriod.id + 1} Active (${activePeriod.displayStart} – ${activePeriod.displayEnd})`;
+          statusEl.textContent = `Period ${activePeriod.id + 1} (${activePeriod.displayStart} – ${activePeriod.displayEnd})`;
         } else if (currentTotalMin >= 10 * 60 + 20 && currentTotalMin < 10 * 60 + 45) {
           statusEl.textContent = "Short Break Interval";
         } else if (currentTotalMin >= 12 * 60 + 35 && currentTotalMin < 13 * 60 + 50) {
-          statusEl.textContent = "Lunch Interval";
+          statusEl.textContent = "Midday Lunch Interval";
         } else {
           statusEl.textContent = "Campus Dormant";
         }
       }
 
-      // Highlight active cell in current section view
+      // Scanner: Which sections are currently 100% FREE right now?
+      if (freeSectionsList && currentDayName && activePeriod !== null) {
+        const freeSecs = [];
+        Object.keys(SECTIONS).forEach((secKey) => {
+          const sub = SECTIONS[secKey].days[currentDayName][activePeriod.id];
+          if (categorizePeriod(sub) === "free") {
+            freeSecs.push({ key: secKey, sub });
+          }
+        });
+
+        if (freeSecs.length > 0) {
+          freeSectionsList.innerHTML = freeSecs
+            .map(
+              (f) => `
+              <span class="beacon-chip" onclick="window.Wormhole.switchSection('${f.key}')" title="Currently has ${f.sub}">
+                <span class="status-dot"></span> 5${f.key} (${f.sub})
+              </span>
+            `
+            )
+            .join("");
+        } else {
+          freeSectionsList.innerHTML = `<span style="color:var(--text-dim); font-size:12px;">All 12 sections currently in fixed classes or labs.</span>`;
+        }
+      }
+
+      // Highlight active cell in current section grid
       document.querySelectorAll(".cell-slot").forEach((c) => c.classList.remove("active-period"));
       if (currentDayName && activePeriod !== null) {
         const activeCell = document.querySelector(
@@ -172,6 +404,217 @@ class WormholeApp {
 
     tickClock();
     setInterval(tickClock, 1000);
+  }
+
+  switchSection(secKey) {
+    WormholeAudio.tick();
+    this.currentSection = secKey;
+    this.updateURLHash();
+    this.buildSectionPigeonholes();
+    this.renderChronosGrid();
+    this.renderAnalytics();
+    document.querySelector('[data-view="chronos"]').click();
+  }
+
+  /* ===================== MULTI-SECTION SQUAD SYNC ===================== */
+  initSquadSync() {
+    this.renderSquadChips();
+    this.buildAddSquadDropdown();
+  }
+
+  renderSquadChips() {
+    const container = document.getElementById("squadChipsContainer");
+    if (!container) return;
+    container.innerHTML = "";
+
+    this.squad.forEach((secKey) => {
+      const chip = document.createElement("div");
+      chip.className = "squad-chip";
+      chip.innerHTML = `
+        <span>Section 5${secKey}</span>
+        ${this.squad.length > 2 ? `<button class="chip-remove" title="Remove">&times;</button>` : ""}
+      `;
+
+      const removeBtn = chip.querySelector(".chip-remove");
+      if (removeBtn) {
+        removeBtn.addEventListener("click", (e) => {
+          e.stopPropagation();
+          WormholeAudio.tick();
+          this.squad = this.squad.filter((k) => k !== secKey);
+          this.updateURLHash();
+          this.renderSquadChips();
+          this.renderSquadSync();
+        });
+      }
+
+      container.appendChild(chip);
+    });
+  }
+
+  buildAddSquadDropdown() {
+    const select = document.getElementById("addSquadSectionSelect");
+    if (!select) return;
+    select.innerHTML = '<option value="">+ Add Section to Squad</option>';
+
+    Object.keys(SECTIONS).forEach((k) => {
+      if (!this.squad.includes(k)) {
+        const opt = document.createElement("option");
+        opt.value = k;
+        opt.textContent = `+ Add Section 5${k}`;
+        select.appendChild(opt);
+      }
+    });
+
+    select.onchange = () => {
+      if (select.value) {
+        WormholeAudio.warp();
+        if (this.vortex) this.vortex.triggerWarp();
+        this.squad.push(select.value);
+        this.updateURLHash();
+        this.renderSquadChips();
+        this.buildAddSquadDropdown();
+        this.renderSquadSync();
+      }
+    };
+  }
+
+  renderSquadSync() {
+    const sectionsArr = this.squad.map((k) => ({ key: k, data: SECTIONS[k] }));
+
+    // Calculate N-way set intersection
+    const windows = [];
+    let sharedFreeSlotsCount = 0;
+    let totalSlots = 6 * 7; // 42 slots
+
+    DAYS.forEach((day) => {
+      let i = 0;
+      while (i < 7) {
+        // Find minimum score across all squad sections for this slot
+        const scores = sectionsArr.map((s) => CAT_LEVELS[categorizePeriod(s.data.days[day][i])]);
+        const minScore = Math.min(...scores);
+
+        if (minScore > 0) {
+          sharedFreeSlotsCount++;
+          let j = i;
+          while (j + 1 < 7) {
+            const nextScores = sectionsArr.map((s) => CAT_LEVELS[categorizePeriod(s.data.days[day][j + 1])]);
+            const nextMin = Math.min(...nextScores);
+            if (nextMin === minScore) {
+              sharedFreeSlotsCount++;
+              j++;
+            } else break;
+          }
+          windows.push({ day, start: i, end: j, score: minScore });
+          i = j + 1;
+        } else {
+          i++;
+        }
+      }
+    });
+
+    // Compute collective alignment score percentage
+    const squadAlignment = Math.min(98, Math.round(50 + (sharedFreeSlotsCount / 12) * 45));
+    const scoreBadge = document.getElementById("squadSyncScoreBadge");
+    if (scoreBadge) {
+      scoreBadge.textContent = `${squadAlignment}% Collective Alignment`;
+    }
+
+    windows.sort((x, y) => y.score - x.score || y.end - y.start - (x.end - x.start));
+
+    const rankList = document.getElementById("squadRankList");
+    if (rankList) {
+      rankList.innerHTML = "";
+      if (windows.length === 0) {
+        rankList.innerHTML = `
+          <li class="card-minimal rank-item" style="justify-content:center; color:var(--text-dim); padding:20px;">
+            No direct class overlaps across all ${this.squad.length} sections — utilize morning break (10:20 AM) and lunch (12:35 PM).
+          </li>
+        `;
+      } else {
+        if (windows.some((w) => w.score === 3)) WormholeAudio.resonance();
+
+        windows.forEach((w, idx) => {
+          const li = document.createElement("li");
+          li.className = "card-minimal rank-item";
+          const startT = PERIODS[w.start].displayStart;
+          const endT = PERIODS[w.end].displayEnd;
+          const tierClass = `tier-${w.score}`;
+          const scoreLabel =
+            w.score === 3
+              ? "All Free (MOOC / Office)"
+              : w.score === 2
+              ? "PE-1 Elective Overlap"
+              : "CTS Low Friction";
+
+          const details = sectionsArr
+            .map((s) => `5${s.key}: ${s.data.days[w.day].slice(w.start, w.end + 1).join(" ")}`)
+            .join(" · ");
+
+          li.innerHTML = `
+            <div class="rank-num">0${idx + 1}</div>
+            <div class="rank-main">
+              <div class="rank-header">${w.day}, ${startT} – ${endT}</div>
+              <div class="rank-sub">${details}</div>
+            </div>
+            <div class="tier-pill ${tierClass}">${scoreLabel}</div>
+          `;
+          rankList.appendChild(li);
+        });
+      }
+    }
+
+    // Render Multi-Squad Heatmap Matrix
+    const matrixTable = document.getElementById("squadOverlayTable");
+    if (matrixTable) {
+      matrixTable.innerHTML = this.generateMultiGridHTML(sectionsArr);
+    }
+  }
+
+  generateMultiGridHTML(sectionsArr) {
+    let html = "<thead><tr><th class='day-cell'>Day</th>";
+    PERIODS.forEach((p, i) => {
+      html += `<th>${p.label}<span class="th-time">${p.displayStart} – ${p.displayEnd}</span></th>`;
+      if (i === 1 || i === 3) html += `<th class="break-cell"></th>`;
+    });
+    html += "</tr></thead><tbody>";
+
+    DAYS.forEach((day) => {
+      html += `<tr><td class="day-cell">${day.substring(0, 3)}</td>`;
+      for (let i = 0; i < 7; i++) {
+        const scores = sectionsArr.map((s) => CAT_LEVELS[categorizePeriod(s.data.days[day][i])]);
+        const minScore = Math.min(...scores);
+        const cls =
+          minScore === 3
+            ? "cat-free"
+            : minScore === 2
+            ? "cat-skiphigh"
+            : minScore === 1
+            ? "cat-skiplow"
+            : "";
+
+        const badge =
+          minScore > 0
+            ? `<span class="cell-tag">${minScore === 3 ? "ALL FREE" : minScore === 2 ? "FLEX" : "SKIP"}</span>`
+            : "";
+
+        const lines = sectionsArr
+          .map((s) => `<div class="cell-name"><span style="color:var(--text-dim); font-size:10.5px;">5${s.key}:</span> ${s.data.days[day][i]}</div>`)
+          .join("");
+
+        html += `
+          <td class="cell-slot ${cls}">
+            ${lines}
+            ${badge}
+          </td>
+        `;
+
+        if (i === 1 || i === 3) html += `<td class="break-cell"></td>`;
+      }
+      html += "</tr>";
+    });
+
+    html += "</tbody>";
+    return html;
   }
 
   /* ===================== CHRONOS MATRIX (Single Section) ===================== */
@@ -188,8 +631,10 @@ class WormholeApp {
       pill.addEventListener("click", () => {
         WormholeAudio.tick();
         this.currentSection = secKey;
+        this.updateURLHash();
         this.buildSectionPigeonholes();
         this.renderChronosGrid();
+        this.renderAnalytics();
       });
       container.appendChild(pill);
     });
@@ -207,10 +652,43 @@ class WormholeApp {
     }
 
     if (tableEl) {
-      tableEl.innerHTML = this.generateGridHTML([{ key: this.currentSection, data: secData }], false);
+      tableEl.innerHTML = this.generateSingleGridHTML(secData);
     }
 
     this.renderDirectory(secData.courses);
+  }
+
+  generateSingleGridHTML(secData) {
+    let html = "<thead><tr><th class='day-cell'>Day</th>";
+    PERIODS.forEach((p, i) => {
+      html += `<th>${p.label}<span class="th-time">${p.displayStart} – ${p.displayEnd}</span></th>`;
+      if (i === 1 || i === 3) html += `<th class="break-cell"></th>`;
+    });
+    html += "</tr></thead><tbody>";
+
+    DAYS.forEach((day) => {
+      html += `<tr><td class="day-cell">${day.substring(0, 3)}</td>`;
+      for (let i = 0; i < 7; i++) {
+        const label = secData.days[day][i];
+        const cat = categorizePeriod(label);
+        const badge = CAT_LABELS[cat]
+          ? `<span class="cell-tag">${CAT_LABELS[cat]}</span>`
+          : "";
+
+        html += `
+          <td class="cell-slot cat-${cat}" data-day="${day}" data-period="${i}">
+            <div class="cell-name">${label}</div>
+            ${badge}
+          </td>
+        `;
+
+        if (i === 1 || i === 3) html += `<td class="break-cell"></td>`;
+      }
+      html += "</tr>";
+    });
+
+    html += "</tbody>";
+    return html;
   }
 
   renderDirectory(courses) {
@@ -221,11 +699,12 @@ class WormholeApp {
     const filtered = (courses || []).filter((c) => {
       if (!this.searchQuery) return true;
       const q = this.searchQuery.toLowerCase();
-      const codeMatch = c.code.toLowerCase().includes(q);
-      const nameMatch = c.name.toLowerCase().includes(q);
-      const facMatch = c.faculty.toLowerCase().includes(q);
-      const labMatch = (c.labs || []).some((l) => l.faculty.toLowerCase().includes(q) || l.tag.toLowerCase().includes(q));
-      return codeMatch || nameMatch || facMatch || labMatch;
+      return (
+        c.code.toLowerCase().includes(q) ||
+        c.name.toLowerCase().includes(q) ||
+        c.faculty.toLowerCase().includes(q) ||
+        (c.labs || []).some((l) => l.faculty.toLowerCase().includes(q) || l.tag.toLowerCase().includes(q))
+      );
     });
 
     filtered.forEach((c) => {
@@ -260,136 +739,27 @@ class WormholeApp {
     }
   }
 
-  /* ===================== THE RIFT (Dual Overlap) ===================== */
-  buildRiftSelectors() {
-    const selectA = document.getElementById("riftSecA");
-    const selectB = document.getElementById("riftSecB");
-    if (!selectA || !selectB) return;
-
-    selectA.innerHTML = "";
-    selectB.innerHTML = "";
-
-    Object.keys(SECTIONS).forEach((k) => {
-      const optA = document.createElement("option");
-      optA.value = k;
-      optA.textContent = `Section 5${k}`;
-      selectA.appendChild(optA);
-
-      const optB = document.createElement("option");
-      optB.value = k;
-      optB.textContent = `Section 5${k}`;
-      selectB.appendChild(optB);
-    });
-
-    selectA.value = this.secA;
-    selectB.value = this.secB;
-
-    const onChange = () => {
-      this.secA = selectA.value;
-      this.secB = selectB.value;
-      WormholeAudio.warp();
-      if (this.vortex) this.vortex.triggerWarp();
-      this.renderTheRift();
-    };
-
-    selectA.addEventListener("change", onChange);
-    selectB.addEventListener("change", onChange);
-  }
-
-  renderTheRift() {
-    const A = { key: this.secA, data: SECTIONS[this.secA] };
-    const B = { key: this.secB, data: SECTIONS[this.secB] };
-
-    // Compute overlapping contiguous windows & calculate sync score
-    const windows = [];
-    let totalFreeOrFlexSlots = 0;
-    const totalSlots = 6 * 7; // 42 slots in a week
+  /* ===================== ATTENDANCE & FRICTION ANALYTICS ===================== */
+  renderAnalytics() {
+    const secData = SECTIONS[this.currentSection];
+    let freeHours = 0;
+    let flexHours = 0;
+    let skipHours = 0;
 
     DAYS.forEach((day) => {
-      let i = 0;
-      while (i < 7) {
-        const la = A.data.days[day][i];
-        const lb = B.data.days[day][i];
-        const score = Math.min(CAT_LEVELS[categorizePeriod(la)], CAT_LEVELS[categorizePeriod(lb)]);
-
-        if (score > 0) {
-          totalFreeOrFlexSlots++;
-          let j = i;
-          while (j + 1 < 7) {
-            const la2 = A.data.days[day][j + 1];
-            const lb2 = B.data.days[day][j + 1];
-            const s2 = Math.min(CAT_LEVELS[categorizePeriod(la2)], CAT_LEVELS[categorizePeriod(lb2)]);
-            if (s2 === score) {
-              totalFreeOrFlexSlots++;
-              j++;
-            } else break;
-          }
-          windows.push({ day, start: i, end: j, score });
-          i = j + 1;
-        } else {
-          i++;
-        }
+      for (let i = 0; i < 7; i++) {
+        const cat = categorizePeriod(secData.days[day][i]);
+        if (cat === "free") freeHours += 0.92; // ~55 mins per period
+        if (cat === "skiphigh") flexHours += 0.92;
+        if (cat === "skiplow") skipHours += 0.92;
       }
     });
 
-    // Sync score percentage (including breaks)
-    const syncPercentage = Math.min(96, Math.round(55 + (totalFreeOrFlexSlots / 14) * 40));
-    const scoreBadge = document.getElementById("riftSyncScore");
-    if (scoreBadge) {
-      scoreBadge.textContent = `${syncPercentage}% Spacetime Alignment`;
-    }
+    const freeHoursEl = document.getElementById("analyticsFreeHours");
+    if (freeHoursEl) freeHoursEl.textContent = `${freeHours.toFixed(1)} hrs`;
 
-    windows.sort((x, y) => y.score - x.score || y.end - y.start - (x.end - x.start));
-
-    const rankList = document.getElementById("riftRankList");
-    if (rankList) {
-      rankList.innerHTML = "";
-      if (windows.length === 0) {
-        rankList.innerHTML = `
-          <li class="card-minimal rank-item" style="justify-content:center; color:var(--text-dim); padding:18px;">
-            No direct class-time overlaps — make use of the guaranteed morning & lunch breaks.
-          </li>
-        `;
-      } else {
-        if (windows.some((w) => w.score === 3)) {
-          WormholeAudio.resonance();
-        }
-
-        windows.forEach((w, idx) => {
-          const li = document.createElement("li");
-          li.className = "card-minimal rank-item";
-          const startT = PERIODS[w.start].displayStart;
-          const endT = PERIODS[w.end].displayEnd;
-          const tierClass = `tier-${w.score}`;
-          const scoreLabel =
-            w.score === 3
-              ? "Both Free (MOOC / Office)"
-              : w.score === 2
-              ? "PE-1 Elective Overlap"
-              : "CTS Low Friction";
-
-          const reason =
-            w.score === 3
-              ? `5${this.secA}: ${A.data.days[w.day][w.start]} · 5${this.secB}: ${B.data.days[w.day][w.start]}`
-              : `5${this.secA}: ${A.data.days[w.day].slice(w.start, w.end + 1).join(" → ")} · 5${this.secB}: ${B.data.days[w.day].slice(w.start, w.end + 1).join(" → ")}`;
-
-          li.innerHTML = `
-            <div class="rank-num">0${idx + 1}</div>
-            <div class="rank-main">
-              <div class="rank-header">${w.day}, ${startT} – ${endT}</div>
-              <div class="rank-sub">${reason}</div>
-            </div>
-            <div class="tier-pill ${tierClass}">${scoreLabel}</div>
-          `;
-          rankList.appendChild(li);
-        });
-      }
-    }
-
-    const tableEl = document.getElementById("riftOverlayTable");
-    if (tableEl) {
-      tableEl.innerHTML = this.generateGridHTML([A, B], true);
-    }
+    const flexHoursEl = document.getElementById("analyticsFlexHours");
+    if (flexHoursEl) flexHoursEl.textContent = `${flexHours.toFixed(1)} hrs`;
   }
 
   /* ===================== ELECTIVES VIEW ===================== */
@@ -410,70 +780,6 @@ class WormholeApp {
         tbody.appendChild(tr);
       });
     });
-  }
-
-  /* ===================== GRID GENERATOR ===================== */
-  generateGridHTML(sectionsArr, isOverlay) {
-    let html = "<thead><tr><th class='day-cell'>Day</th>";
-    PERIODS.forEach((p, i) => {
-      html += `<th>${p.label}<span class="th-time">${p.displayStart} – ${p.displayEnd}</span></th>`;
-      if (i === 1 || i === 3) html += `<th class="break-cell"></th>`;
-    });
-    html += "</tr></thead><tbody>";
-
-    DAYS.forEach((day) => {
-      html += `<tr><td class="day-cell">${day.substring(0, 3)}</td>`;
-      for (let i = 0; i < 7; i++) {
-        if (isOverlay) {
-          const [a, b] = sectionsArr;
-          const la = a.data.days[day][i];
-          const lb = b.data.days[day][i];
-          const ca = categorizePeriod(la);
-          const cb = categorizePeriod(lb);
-          const score = Math.min(CAT_LEVELS[ca], CAT_LEVELS[cb]);
-          const cls =
-            score === 3
-              ? "cat-free"
-              : score === 2
-              ? "cat-skiphigh"
-              : score === 1
-              ? "cat-skiplow"
-              : "";
-
-          const badge =
-            score > 0
-              ? `<span class="cell-tag">${score === 3 ? "BOTH FREE" : score === 2 ? "FLEX" : "SKIP"}</span>`
-              : "";
-
-          html += `
-            <td class="cell-slot ${cls}">
-              <div class="cell-name"><span style="color:var(--text-dim); font-size:11px;">5${a.key}:</span> ${la}</div>
-              <div class="cell-name" style="margin-top:2px;"><span style="color:var(--text-dim); font-size:11px;">5${b.key}:</span> ${lb}</div>
-              ${badge}
-            </td>
-          `;
-        } else {
-          const label = sectionsArr[0].data.days[day][i];
-          const cat = categorizePeriod(label);
-          const badge = CAT_LABELS[cat]
-            ? `<span class="cell-tag">${CAT_LABELS[cat]}</span>`
-            : "";
-
-          html += `
-            <td class="cell-slot cat-${cat}" data-day="${day}" data-period="${i}">
-              <div class="cell-name">${label}</div>
-              ${badge}
-            </td>
-          `;
-        }
-
-        if (i === 1 || i === 3) html += `<td class="break-cell"></td>`;
-      }
-      html += "</tr>";
-    });
-
-    html += "</tbody>";
-    return html;
   }
 
   /* ===================== ICS EXPORTER ===================== */

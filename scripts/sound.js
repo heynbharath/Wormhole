@@ -1,6 +1,6 @@
 /**
- * WORMHOLE Minimalist Tactile Audio Engine
- * Haptic-inspired Web Audio synthesis with subtle, non-intrusive micro-feedback.
+ * WORMHOLE Web Audio Synthesizer
+ * Zero-asset, zero-latency tactile haptic micro-feedback and quantum sound design.
  */
 
 class WormholeSoundEngine {
@@ -41,7 +41,7 @@ class WormholeSoundEngine {
   }
 
   /**
-   * Tactile haptic tick (like Apple / Linear keyboard tick)
+   * Tactile Mechanical Click (Linear / Apple style)
    */
   tick() {
     if (this.muted) return;
@@ -54,10 +54,10 @@ class WormholeSoundEngine {
       const now = this.ctx.currentTime;
 
       osc.type = "sine";
-      osc.frequency.setValueAtTime(600, now);
-      osc.frequency.exponentialRampToValueAtTime(200, now + 0.02);
+      osc.frequency.setValueAtTime(650, now);
+      osc.frequency.exponentialRampToValueAtTime(220, now + 0.02);
 
-      gain.gain.setValueAtTime(0.025, now);
+      gain.gain.setValueAtTime(0.03, now);
       gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.02);
 
       osc.connect(gain);
@@ -69,7 +69,7 @@ class WormholeSoundEngine {
   }
 
   /**
-   * Warm, subtle spacetime warp sweep
+   * Warm Spacetime Warp Sweep
    */
   warp() {
     if (this.muted) return;
@@ -83,30 +83,30 @@ class WormholeSoundEngine {
       const gain = this.ctx.createGain();
 
       filter.type = "lowpass";
-      filter.frequency.setValueAtTime(400, now);
-      filter.frequency.exponentialRampToValueAtTime(1200, now + 0.12);
-      filter.frequency.exponentialRampToValueAtTime(300, now + 0.22);
+      filter.frequency.setValueAtTime(350, now);
+      filter.frequency.exponentialRampToValueAtTime(1400, now + 0.12);
+      filter.frequency.exponentialRampToValueAtTime(250, now + 0.24);
 
-      osc.type = "sine";
-      osc.frequency.setValueAtTime(140, now);
-      osc.frequency.exponentialRampToValueAtTime(320, now + 0.12);
-      osc.frequency.exponentialRampToValueAtTime(180, now + 0.22);
+      osc.type = "triangle";
+      osc.frequency.setValueAtTime(120, now);
+      osc.frequency.exponentialRampToValueAtTime(340, now + 0.12);
+      osc.frequency.exponentialRampToValueAtTime(160, now + 0.24);
 
       gain.gain.setValueAtTime(0.001, now);
-      gain.gain.linearRampToValueAtTime(0.035, now + 0.05);
-      gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.22);
+      gain.gain.linearRampToValueAtTime(0.03, now + 0.06);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.24);
 
       osc.connect(filter);
       filter.connect(gain);
       gain.connect(this.ctx.destination);
 
       osc.start(now);
-      osc.stop(now + 0.23);
+      osc.stop(now + 0.25);
     } catch (e) {}
   }
 
   /**
-   * Subtle pleasant resonance chord when 100% sync occurs
+   * Harmonic Squad Alignment Resonance
    */
   resonance() {
     if (this.muted) return;
@@ -115,26 +115,54 @@ class WormholeSoundEngine {
 
     try {
       const now = this.ctx.currentTime;
-      const freqs = [440, 554.37, 659.25]; // A Major soft triad
+      const freqs = [440, 554.37, 659.25, 880]; // A Major 7th
 
       freqs.forEach((f, i) => {
         const osc = this.ctx.createOscillator();
         const gain = this.ctx.createGain();
-        const startTime = now + i * 0.03;
+        const startTime = now + i * 0.04;
 
         osc.type = "sine";
         osc.frequency.setValueAtTime(f, startTime);
 
         gain.gain.setValueAtTime(0.001, startTime);
-        gain.gain.linearRampToValueAtTime(0.02, startTime + 0.02);
-        gain.gain.exponentialRampToValueAtTime(0.0001, startTime + 0.3);
+        gain.gain.linearRampToValueAtTime(0.02, startTime + 0.03);
+        gain.gain.exponentialRampToValueAtTime(0.0001, startTime + 0.35);
 
         osc.connect(gain);
         gain.connect(this.ctx.destination);
 
         osc.start(startTime);
-        osc.stop(startTime + 0.32);
+        osc.stop(startTime + 0.38);
       });
+    } catch (e) {}
+  }
+
+  /**
+   * Quantum Beacon Radar Ping
+   */
+  beacon() {
+    if (this.muted) return;
+    this.ensureContext();
+    if (!this.ctx) return;
+
+    try {
+      const now = this.ctx.currentTime;
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+
+      osc.type = "sine";
+      osc.frequency.setValueAtTime(880, now);
+      osc.frequency.exponentialRampToValueAtTime(1760, now + 0.08);
+
+      gain.gain.setValueAtTime(0.015, now);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.08);
+
+      osc.connect(gain);
+      gain.connect(this.ctx.destination);
+
+      osc.start(now);
+      osc.stop(now + 0.09);
     } catch (e) {}
   }
 }

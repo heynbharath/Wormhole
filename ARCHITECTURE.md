@@ -1,91 +1,51 @@
-# 🛸 WORMHOLE — Technical Architecture & Engineering Specs
+# 🏗️ WORMHOLE — Technical Architecture & Algorithms
 
-## 1. System Overview
+WORMHOLE is engineered as an ultra-fast, zero-dependency, single-page application executing client-side set intersection arithmetic on normalized schedule tensors.
 
-WORMHOLE is architected as an ultra-lightweight, zero-dependency, ultra-high-performance client-side Single-Page Application (SPA). It renders at steady 60 FPS while performing real-time schedule set-intersection algorithms.
+---
 
+## 1. N-Way Squad Intersection Algorithm
+
+Given a squad $S = \{S_1, S_2, \dots, S_k\}$ where $k \in [2, 8]$ sections, for each day $D \in \text{DAYS}$ and period slot $P_i \in [0, 6]$:
+
+$$\text{SlotScore}(D, P_i) = \min_{j=1}^k \left( \text{FrictionTier}(S_j, D, P_i) \right)$$
+
+Where $\text{FrictionTier}(label) \in \{3, 2, 1, 0\}$:
+- **Level 3 (Free)**: `MOOC | SPORTS | LIBRARY | MENTOR | OFFICE`
+- **Level 2 (Flex)**: `PE-1`
+- **Level 1 (Low)**: `CTS`
+- **Level 0 (Locked)**: `Core Subjects | Practical Labs`
+
+$$\text{SquadAlignmentScore} = \frac{\sum \mathbb{I}(\text{SlotScore} \ge 2) + \text{BreakSlots}}{\text{TotalAcademicSlots}} \times 100\%$$
+
+---
+
+## 2. Real-Time Radar Loop (`startLiveRadar()`)
+
+An active `1000ms` clock pulse compares `now.getHours() * 60 + now.getMinutes()` against the defined academic interval bounds:
+```js
+PERIODS = [
+  { start: "08:40", end: "09:30" }, // P1
+  { start: "09:30", end: "10:20" }, // P2
+  // Break: 10:20 – 10:45
+  { start: "10:45", end: "11:40" }, // P3
+  { start: "11:40", end: "12:35" }, // P4
+  // Lunch: 12:35 – 01:50
+  { start: "01:50", end: "02:40" }, // P5
+  { start: "02:40", end: "03:30" }, // P6
+  { start: "03:30", end: "04:20" }, // P7
+]
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                       WORMHOLE ENGINE                       │
-├─────────────────┬─────────────────┬─────────────────────────┤
-│  Canvas Canvas  │ Web Audio Synth │ Chronos State & Matrix  │
-│  (particles.js) │   (sound.js)    │   (engine.js + data.js) │
-└────────┬────────┴────────┬────────┴────────────┬────────────┘
-         │                 │                     │
-         ▼                 ▼                     ▼
-   [WebGL / 2D]       [AudioContext]       [DOM / Micro-UI]
-```
+
+At every tick:
+1. Calculates time remaining in active period: $\Delta T = \text{EndMin} - \text{CurrentMin}$.
+2. Scans all 12 sections: $\text{FreeSections} = \{S_k \mid \text{FrictionTier}(S_k, \text{Today}, \text{CurrentPeriod}) = 3\}$.
+3. Emits live HUD metrics and updates the UI status pill.
 
 ---
 
-## 2. Component Hierarchy & Module Separation
+## 3. URL Hash State Encoder & Deserializer
 
-```
-/DSU UNI SYNC
-├── index.html               # Main application shell and UI views
-├── styles/
-│   ├── theme.css            # Cosmic design tokens, animations, glow utilities
-│   └── components.css       # Timetable grid, glass cards, Pigeonholes, badges
-├── scripts/
-│   ├── data.js              # Normalized dataset for all 12 sections (A–L) & electives
-│   ├── sound.js             # Native Web Audio API sound synthesizers
-│   ├── particles.js         # Interactive Canvas gravitational wormhole particle vortex
-│   └── engine.js            # Core overlap algorithms, live time tracker & calendar exporter
-├── PHILOSOPHY.md            # Product manifesto and YC thesis
-├── DESIGN_SYSTEM.md         # Design tokens, color system, and typography
-├── ARCHITECTURE.md          # This technical document
-└── ROADMAP.md               # Product versioning and future scaling
-```
-
----
-
-## 3. Core Algorithms
-
-### 3.1 The Spacetime Intersection Engine (The Rift Algorithm)
-
-The comparison engine calculates the contiguous overlapping windows between any two sections $S_A$ and $S_B$:
-
-$$\text{Score}(d, p) = \min\Big(\text{Tier}(S_A[d][p]),\, \text{Tier}(S_B[d][p])\Big)$$
-
-Where:
-- $\text{Tier}(\text{MOOC} \mid \text{SPORTS} \mid \text{LIBRARY} \mid \text{MENTOR} \mid \text{OFFICE}) = 3$ (Quantum Free)
-- $\text{Tier}(\text{PE-1}) = 2$ (Flexible Shift)
-- $\text{Tier}(\text{CTS}) = 1$ (Low Friction)
-- $\text{Tier}(\text{Core Class} \mid \text{Lab} \mid \text{Soft Skill}) = 0$ (Locked)
-
-Windows are formed by grouping adjacent periods with $\text{Score} > 0$ and ranked by:
-$$\text{Rank}(W) = (\text{Score}(W) \times 100) + \text{Duration}(W)$$
-
-### 3.2 Live "Now" Clock Synchronization
-
-The system continuously tracks local time via `requestAnimationFrame` throttled clock loop:
-1. Calculates active day index $D \in [0..5]$ (Monday–Saturday).
-2. Maps current hour and minute to active period $P \in [0..6]$.
-3. Adds glowing `.now-active` pulse effect to the current class cell and displays remaining time until transition.
-
----
-
-## 4. Hardware-Accelerated Canvas Vortex (`particles.js`)
-
-- **Rendering Engine**: HTML5 2D Canvas context with coordinate transformation for perspective depth.
-- **Physics**: 250-400 orbital particles attracted to a central gravitational singularity $(c_x, c_y)$ with logarithmic decay.
-- **Interactive Cursor Warping**: Pointer velocity induces rotational torque on the accretion disk.
-- **Performance Budget**: Target $< 2.5\text{ms}$ frame render time on modern mobile/desktop GPUs.
-
----
-
-## 5. Native Audio Synthesis (`sound.js`)
-
-Zero external audio MP3/WAV assets. 100% synthesized through native `AudioContext`:
-- **Warp Chime**: Dual sine oscillator frequency ramp (220 Hz $\to$ 880 Hz with exponential gain decay).
-- **Matrix Click**: High-pass filtered impulse burst (1200 Hz with $15\text{ms}$ release).
-- **Quantum Lock**: Polyphonic chord progression when 100% free overlap is surfaced.
-- **State Persistence**: Mute toggle auto-persisted to `localStorage['wormhole_sound_muted']`.
-
----
-
-## 6. Security & Privacy Model
-
-- **Zero Trackers**: No external analytics, trackers, or cookie banners.
-- **Local State**: Section preferences and audio configurations stored exclusively in client `localStorage`.
-- **Content Security Policy (CSP) Ready**: No unsafe `eval()` executions.
+Allows zero-backend state sharing across devices:
+- Format: `window.location.hash = #squad=H,L,A&view=squad`
+- On load, parses `hashParams` and restores exact multi-section comparison state in $< 5\text{ms}$.
