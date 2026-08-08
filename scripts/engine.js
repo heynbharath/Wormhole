@@ -367,54 +367,98 @@ class WormholeApp {
     if (existing) { existing.remove(); return; }
 
     const bookmarkletCode = this.generateSmartBookmarklet();
+    const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+    const isChrome = /chrome/i.test(navigator.userAgent) && !/edge/i.test(navigator.userAgent);
+
+    // Method A — Chrome/Firefox: drag bookmarklet
+    const chromeMethod = `
+      <div style="display:flex; flex-direction:column; gap:14px;">
+        <div style="display:flex; gap:12px; align-items:flex-start;">
+          <div style="min-width:28px; height:28px; border-radius:50%; background:var(--primary); display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:800; color:#fff; flex-shrink:0;">1</div>
+          <div>
+            <div style="font-weight:700; color:var(--text-main); margin-bottom:4px;">Drag this button to your bookmarks bar</div>
+            <div style="font-size:12px; color:var(--text-dim); margin-bottom:8px;">Drag the button below into your browser bookmarks/favorites bar. Do this <b>once</b>.</div>
+            <a href="${bookmarkletCode}" id="erpBookmarkletDrag" style="display:inline-block; padding:8px 16px; background:rgba(139,92,246,0.15); border:1px dashed rgba(139,92,246,0.5); border-radius:var(--radius-sm); color:var(--primary-light); font-size:13px; font-weight:700; cursor:grab; text-decoration:none; user-select:none;">⭐ Wormhole ERP Sync ← drag me</a>
+            <div style="font-size:10.5px; color:var(--text-dim); margin-top:6px;">If you accidentally click it instead of dragging, nothing will break — just drag it next time.</div>
+          </div>
+        </div>
+        <div style="display:flex; gap:12px; align-items:flex-start;">
+          <div style="min-width:28px; height:28px; border-radius:50%; background:var(--primary); display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:800; color:#fff; flex-shrink:0;">2</div>
+          <div>
+            <div style="font-weight:700; color:var(--text-main); margin-bottom:4px;">Go to ums.mydsi.org → Attendance Summary</div>
+            <div style="font-size:12px; color:var(--text-dim);">Log in. Navigate to <b>Timetable → Attendance Summary</b>. Select the <b>Attendance Summary</b> tab (not Absent Days).</div>
+          </div>
+        </div>
+        <div style="display:flex; gap:12px; align-items:flex-start;">
+          <div style="min-width:28px; height:28px; border-radius:50%; background:var(--primary); display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:800; color:#fff; flex-shrink:0;">3</div>
+          <div>
+            <div style="font-weight:700; color:var(--text-main); margin-bottom:4px;">Click ⭐ Wormhole ERP Sync from your bookmarks bar</div>
+            <div style="font-size:12px; color:var(--text-dim);">Wormhole opens in a new tab and automatically shows your live attendance data — ready to import.</div>
+          </div>
+        </div>
+      </div>
+    `;
+
+    // Method B — Safari: copy code, manually add bookmark
+    const safariMethod = `
+      <div style="display:flex; flex-direction:column; gap:14px;">
+
+        <div style="background:rgba(251,191,36,0.08); border:1px solid rgba(251,191,36,0.25); border-radius:var(--radius-sm); padding:10px 12px; font-size:12px; color:#FBBF24;">
+          ⚠️ <b>Safari blocks JavaScript bookmarklets when clicked as links.</b> Use one of these methods instead:
+        </div>
+
+        <div style="font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.06em; color:var(--text-dim); margin-bottom:-6px;">Option A — Enable Bookmarklets in Safari (Recommended)</div>
+        <div style="display:flex; gap:12px; align-items:flex-start;">
+          <div style="min-width:24px; height:24px; border-radius:50%; background:rgba(251,191,36,0.2); border:1px solid rgba(251,191,36,0.4); display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:800; color:#FBBF24; flex-shrink:0;">→</div>
+          <div style="font-size:12px; color:var(--text-dim);">
+            Safari → <b>Settings</b> (⌘,) → <b>Advanced</b> → tick <b>"Show features for web developers"</b><br>
+            Then: <b>Develop menu → "Allow JavaScript from Smart Search Field"</b><br>
+            After enabling, drag the bookmarklet button above normally.
+          </div>
+        </div>
+
+        <div style="font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.06em; color:var(--text-dim); margin-bottom:-6px;">Option B — Manually save the bookmarklet</div>
+        <div style="display:flex; gap:12px; align-items:flex-start;">
+          <div style="min-width:24px; height:24px; border-radius:50%; background:rgba(139,92,246,0.1); border:1px solid rgba(139,92,246,0.3); display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:800; color:var(--primary-light); flex-shrink:0;">1</div>
+          <div style="font-size:12px; color:var(--text-dim);">
+            Click <b>Copy Code</b> below → then go to Safari Bookmarks → Edit Bookmarks → New Bookmark → name it anything → <b>replace the URL with the copied code</b>.
+          </div>
+        </div>
+        <div style="display:flex; gap:8px; flex-wrap:wrap;">
+          <button id="copyBookmarkletBtn" class="btn-solid" style="font-size:12px; padding:7px 14px;">📋 Copy Bookmarklet Code</button>
+          <span id="copyBookmarkletStatus" style="font-size:12px; color:var(--free-text); align-self:center; opacity:0; transition:opacity 0.3s;">✓ Copied!</span>
+        </div>
+
+        <div style="font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.06em; color:var(--text-dim); margin-bottom:-6px;">Option C — Paste & Sync (works everywhere, no setup)</div>
+        <div style="display:flex; gap:12px; align-items:flex-start;">
+          <div style="font-size:12px; color:var(--text-dim);">
+            On ums.mydsi.org attendance page: press <b>⌘A</b> then <b>⌘C</b> to copy all text. Then paste it in the <b>"Paste raw text"</b> section at the bottom of the Attendance Copilot.
+          </div>
+        </div>
+      </div>
+    `;
+
+    // Always show both tabs so users can switch
     const modal = document.createElement("div");
     modal.id = "erpSyncGuideModal";
     modal.className = "cmd-backdrop open";
     modal.innerHTML = `
-      <div class="cmd-box" style="max-width:560px; width:95vw;">
+      <div class="cmd-box" style="max-width:580px; width:95vw; animation:fadeInUp 0.3s ease;">
         <div class="modal-header">
-          <h3 style="font-size:16px; font-weight:800;">🔗 How to Sync DSU ERP Attendance</h3>
+          <h3 style="font-size:16px; font-weight:800;">🔗 Sync ERP Attendance to Wormhole</h3>
           <button onclick="document.getElementById('erpSyncGuideModal').remove()" style="background:none;border:none;color:var(--text-dim);font-size:22px;cursor:pointer;">&times;</button>
         </div>
         <div class="modal-body">
-          <div style="display:flex; flex-direction:column; gap:14px;">
-
-            <div style="display:flex; gap:12px; align-items:flex-start;">
-              <div style="min-width:28px; height:28px; border-radius:50%; background:var(--primary); display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:800; color:#fff; flex-shrink:0;">1</div>
-              <div>
-                <div style="font-weight:700; color:var(--text-main); margin-bottom:4px;">Drag the bookmarklet to your browser bar</div>
-                <div style="font-size:12px; color:var(--text-dim);">Drag the <b>⭐ ERP Bookmarklet</b> button from the attendance modal header into your bookmarks bar. Do this once.</div>
-                <a href="${bookmarkletCode}" id="erpBookmarkletDrag" style="display:inline-block; margin-top:8px; padding:7px 14px; background:rgba(139,92,246,0.15); border:1px solid rgba(139,92,246,0.4); border-radius:var(--radius-sm); color:var(--primary-light); font-size:12px; font-weight:700; cursor:grab; text-decoration:none;">⭐ Wormhole ERP Sync — drag me to bookmarks bar</a>
-              </div>
-            </div>
-
-            <div style="display:flex; gap:12px; align-items:flex-start;">
-              <div style="min-width:28px; height:28px; border-radius:50%; background:var(--primary); display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:800; color:#fff; flex-shrink:0;">2</div>
-              <div>
-                <div style="font-weight:700; color:var(--text-main); margin-bottom:4px;">Go to ums.mydsi.org → Attendance Summary</div>
-                <div style="font-size:12px; color:var(--text-dim);">Log in normally. Navigate to <b>Timetable → Attendance Summary</b>. Make sure the Attendance Summary tab is selected (not Absent Days or Month View).</div>
-              </div>
-            </div>
-
-            <div style="display:flex; gap:12px; align-items:flex-start;">
-              <div style="min-width:28px; height:28px; border-radius:50%; background:var(--primary); display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:800; color:#fff; flex-shrink:0;">3</div>
-              <div>
-                <div style="font-weight:700; color:var(--text-main); margin-bottom:4px;">Click the bookmarklet</div>
-                <div style="font-size:12px; color:var(--text-dim);">Click the bookmarklet in your bar. It reads your attendance table directly from the page and opens Wormhole in a new tab with all data pre-loaded.</div>
-              </div>
-            </div>
-
-            <div style="display:flex; gap:12px; align-items:flex-start;">
-              <div style="min-width:28px; height:28px; border-radius:50%; background:linear-gradient(135deg,#10B981,#059669); display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:800; color:#fff; flex-shrink:0;">✓</div>
-              <div>
-                <div style="font-weight:700; color:var(--free-text); margin-bottom:4px;">Confirm the import in Wormhole</div>
-                <div style="font-size:12px; color:var(--text-dim);">A preview modal shows all your courses with real data. One click to import — your bunk simulator is now live.</div>
-              </div>
-            </div>
+          <!-- Browser tabs -->
+          <div style="display:flex; gap:0; margin-bottom:16px; border-bottom:1px solid var(--border-subtle);">
+            <button id="syncTabChrome" onclick="Wormhole._switchSyncTab('chrome')" style="padding:8px 16px; background:${!isSafari ? 'rgba(139,92,246,0.15)' : 'transparent'}; border:none; border-bottom:2px solid ${!isSafari ? 'var(--primary)' : 'transparent'}; color:${!isSafari ? 'var(--primary-light)' : 'var(--text-dim)'}; font-size:12px; font-weight:700; cursor:pointer;">🟢 Chrome / Firefox</button>
+            <button id="syncTabSafari" onclick="Wormhole._switchSyncTab('safari')" style="padding:8px 16px; background:${isSafari ? 'rgba(139,92,246,0.15)' : 'transparent'}; border:none; border-bottom:2px solid ${isSafari ? 'var(--primary)' : 'transparent'}; color:${isSafari ? 'var(--primary-light)' : 'var(--text-dim)'}; font-size:12px; font-weight:700; cursor:pointer;">🧭 Safari</button>
           </div>
+          <div id="syncMethodChrome" style="display:${!isSafari ? 'block' : 'none'}">${chromeMethod}</div>
+          <div id="syncMethodSafari" style="display:${isSafari ? 'block' : 'none'}">${safariMethod}</div>
 
           <div style="margin-top:16px; background:rgba(16,185,129,0.06); border:1px solid rgba(16,185,129,0.2); border-radius:var(--radius-sm); padding:10px 12px; font-size:11.5px; color:var(--free-text);">
-            🔒 <strong>Zero privacy risk.</strong> The bookmarklet runs entirely inside your browser. No data is sent to any server — not DSU, not Wormhole. The ERP data travels only as a URL hash fragment, which is browser-local.
+            🔒 <strong>Zero privacy risk.</strong> All data stays in your browser. Nothing is sent to any server.
           </div>
         </div>
         <div class="modal-footer" style="justify-content:flex-end;">
@@ -425,9 +469,38 @@ class WormholeApp {
     document.body.appendChild(modal);
     modal.addEventListener("click", (e) => { if (e.target === modal) modal.remove(); });
 
-    // Set the drag bookmarklet in the guide too
-    const guideBookmark = document.getElementById("erpBookmarkletDrag");
-    if (guideBookmark) guideBookmark.setAttribute("href", bookmarkletCode);
+    // Set drag bookmarklet
+    const drag = document.getElementById("erpBookmarkletDrag");
+    if (drag) drag.setAttribute("href", bookmarkletCode);
+
+    // Copy code button
+    const copyBtn = document.getElementById("copyBookmarkletBtn");
+    if (copyBtn) {
+      copyBtn.addEventListener("click", () => {
+        navigator.clipboard.writeText(bookmarkletCode).then(() => {
+          const status = document.getElementById("copyBookmarkletStatus");
+          if (status) { status.style.opacity = "1"; setTimeout(() => status.style.opacity = "0", 2000); }
+        });
+      });
+    }
+
+    // Tab switching
+    window.Wormhole._switchSyncTab = (tab) => {
+      document.getElementById("syncMethodChrome").style.display = tab === "chrome" ? "block" : "none";
+      document.getElementById("syncMethodSafari").style.display = tab === "safari" ? "block" : "none";
+      const chromeBtn = document.getElementById("syncTabChrome");
+      const safariBtn = document.getElementById("syncTabSafari");
+      if (chromeBtn) {
+        chromeBtn.style.background = tab === "chrome" ? "rgba(139,92,246,0.15)" : "transparent";
+        chromeBtn.style.borderBottomColor = tab === "chrome" ? "var(--primary)" : "transparent";
+        chromeBtn.style.color = tab === "chrome" ? "var(--primary-light)" : "var(--text-dim)";
+      }
+      if (safariBtn) {
+        safariBtn.style.background = tab === "safari" ? "rgba(139,92,246,0.15)" : "transparent";
+        safariBtn.style.borderBottomColor = tab === "safari" ? "var(--primary)" : "transparent";
+        safariBtn.style.color = tab === "safari" ? "var(--primary-light)" : "var(--text-dim)";
+      }
+    };
   }
 
   applyScenario(scenario) {
@@ -541,65 +614,113 @@ class WormholeApp {
   }
 
   parseERPText(text) {
-    if (!text.trim()) return;
+    if (!text.trim()) {
+      this.showToast("Please paste some text first.", "error");
+      return;
+    }
 
-    const lines = text.split("\n").map((l) => l.trim()).filter(Boolean);
     const courses = [];
     let totalConducted = 0;
     let totalPresent = 0;
-    let totalAbsent = 0;
+    let studentName = "";
 
-    // Look for course lines with 24CS35XX codes
+    // Split into lines, remove blank
+    const lines = text.split("\n").map((l) => l.trim()).filter(Boolean);
+
+    // Try to extract student name from heading line
     lines.forEach((line) => {
-      const match = line.match(/(24CS35\d{2})\s*[-—]?\s*([A-Za-z &]+)/i);
-      if (match) {
-        const code = match[1].toUpperCase();
-        const name = match[2].trim();
-        // Look for numbers nearby
-        const nums = line.match(/\b\d+(\.\d+)?\b/g);
-        let conducted = 0,
-          present = 0,
-          absent = 0;
-        if (nums && nums.length >= 3) {
-          conducted = parseInt(nums[0], 10) || 0;
-          present = parseInt(nums[1], 10) || 0;
-          absent = parseInt(nums[2], 10) || 0;
+      if (line.includes("Attendance Summary")) {
+        const after = line.split("Attendance Summary").pop().replace(/of\s*Semester\s*\d+/i, "").trim();
+        if (after) studentName = after;
+      }
+    });
+
+    lines.forEach((line) => {
+      // Skip header/footer lines
+      if (/^(sr\.|slot type|course|total|search|absent days|month view|attendance summary)/i.test(line)) return;
+      if (/^\d+\s*$/.test(line)) return; // page numbers
+
+      // Strategy 1: Tab-separated rows from copy-paste
+      // Format: "1\tTheory\t24CS3501 - GPU ARCHITECTURE\t3\t3\t0\t100.00 %"
+      const tabParts = line.split(/\t/);
+      if (tabParts.length >= 5) {
+        // Try to find the course code column
+        let codeIdx = -1;
+        tabParts.forEach((p, i) => { if (/^24[A-Z]{2}\d{4}/i.test(p.trim())) codeIdx = i; });
+
+        if (codeIdx !== -1) {
+          const courseText = tabParts[codeIdx].trim();
+          const codeMatch = courseText.match(/^(24[A-Z]{2}\d{4})/i);
+          if (codeMatch) {
+            const code = codeMatch[1].toUpperCase();
+            const name = courseText.replace(/^24[A-Z]{2}\d{4}\s*[-–—]?\s*/, "").trim() || courseText;
+            const slotType = tabParts.find((p) => /^(theory|practical|lab)/i.test(p.trim())) || "Theory";
+
+            // Numbers come after course column
+            const numCols = tabParts.slice(codeIdx + 1).map((p) => parseInt(p.trim())).filter((n) => !isNaN(n));
+            const conducted = numCols[0] || 0;
+            const present = numCols[1] !== undefined ? numCols[1] : conducted;
+            const absent = numCols[2] !== undefined ? numCols[2] : conducted - present;
+
+            if (conducted > 0) {
+              const pct = parseFloat(((present / conducted) * 100).toFixed(2));
+              courses.push({ code, name, type: slotType.trim(), conducted, present, absent, pct, faculty: "" });
+              totalConducted += conducted;
+              totalPresent += present;
+            }
+            return; // handled
+          }
         }
+      }
 
-        const pct = conducted > 0 ? (present / conducted) * 100 : 100;
-        totalConducted += conducted;
-        totalPresent += present;
-        totalAbsent += absent;
+      // Strategy 2: Space-separated — extract 24CSXXXX code + trailing numbers
+      const codeMatch = line.match(/\b(24[A-Z]{2}\d{4})\b/i);
+      if (codeMatch) {
+        const code = codeMatch[1].toUpperCase();
+        // Get name: everything between code and first standalone number
+        const afterCode = line.slice(line.indexOf(codeMatch[1]) + codeMatch[1].length);
+        const name = afterCode.replace(/[-–—]/g, "").replace(/\d+.*$/, "").trim() || code;
 
-        courses.push({
-          code,
-          name,
-          conducted,
-          present,
-          absent,
-          pct: parseFloat(pct.toFixed(2)),
-          type: "Theory",
-        });
+        // Extract up to 3 standalone integers (conducted, present, absent)
+        const nums = (line.match(/\b(\d{1,3})\b(?!\s*%)/g) || []).map(Number).filter((n) => n <= 200);
+        // Remove the row number at start if present
+        const cleaned = nums.filter((n, i) => i > 0 || n > 9); // row nums are usually 1-9
+        const conducted = cleaned[0] || 0;
+        const present = cleaned[1] !== undefined ? cleaned[1] : conducted;
+        const absent = cleaned[2] !== undefined ? cleaned[2] : conducted - present;
+        const slotType = /practical|lab/i.test(line) ? "Practical" : "Theory";
+
+        if (conducted > 0 && !courses.find((c) => c.code === code)) {
+          const pct = parseFloat(((present / conducted) * 100).toFixed(2));
+          courses.push({ code, name, type: slotType, conducted, present, absent, pct, faculty: "" });
+          totalConducted += conducted;
+          totalPresent += present;
+        }
       }
     });
 
     if (courses.length > 0) {
-      const overallPct = totalConducted > 0 ? (totalPresent / totalConducted) * 100 : 100;
-      this.saveAttendance({
+      const overallPct = totalConducted > 0 ? parseFloat(((totalPresent / totalConducted) * 100).toFixed(2)) : 100;
+      const importData = {
         student: {
-          ...this.attendance.student,
+          name: studentName || this.attendance.student?.name || "",
           totalConducted,
           totalPresent,
-          totalAbsent,
-          overallPct: parseFloat(overallPct.toFixed(2)),
+          totalAbsent: totalConducted - totalPresent,
+          overallPct,
+          syncedAt: new Date().toISOString(),
         },
         courses,
-      });
-      WormholeAudio.resonance();
-      alert(`✓ Successfully synced ${courses.length} courses from DSU ERP!`);
-      this.renderAttendanceModalTable();
+      };
+
+      // Show import preview modal instead of alert
+      this.showERPImportModal(importData);
+
+      // Clear paste area
+      const pasteArea = document.getElementById("attendancePasteArea");
+      if (pasteArea) pasteArea.value = "";
     } else {
-      alert("Could not detect standard 24CS35XX format. Please check text or use default dataset.");
+      this.showToast("Could not detect course data. Make sure you copied from the Attendance Summary tab.", "error");
     }
   }
 
