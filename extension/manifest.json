@@ -1,0 +1,25 @@
+{
+  "manifest_version": 3,
+  "name": "Wormhole ERP Sync Copilot",
+  "version": "1.0.0",
+  "description": "Sync DSU ERP attendance data to Wormhole with a single click.",
+  "permissions": ["activeTab"],
+  "host_permissions": [
+    "*://ums.mydsi.org/*",
+    "*://*.dsu.ac.in/*"
+  ],
+  "action": {
+    "default_popup": "popup.html"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "*://ums.mydsi.org/*",
+        "*://*.dsu.ac.in/*",
+        "*://localhost/*"
+      ],
+      "js": ["content.js"],
+      "run_at": "document_end"
+    }
+  ]
+}

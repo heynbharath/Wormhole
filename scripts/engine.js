@@ -374,6 +374,40 @@ class WormholeApp {
     const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
     const isChrome = /chrome/i.test(navigator.userAgent) && !/edge/i.test(navigator.userAgent);
 
+    // Method C — Chrome Extension (Recommended, crazy fast)
+    const extensionMethod = `
+      <div style="display:flex; flex-direction:column; gap:14px;">
+        <div style="background:rgba(139,92,246,0.08); border:1px solid rgba(139,92,246,0.25); border-radius:var(--radius-sm); padding:10px 12px; font-size:12px; color:var(--primary-light);">
+          🔥 <b>Recommended: Get the Wormhole Copilot extension!</b> Installs in 30 seconds and adds a floating 1-click sync button directly inside the DSU ERP Attendance page.
+        </div>
+        <div style="display:flex; gap:12px; align-items:flex-start;">
+          <div style="min-width:28px; height:28px; border-radius:50%; background:var(--primary); display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:800; color:#fff; flex-shrink:0;">1</div>
+          <div>
+            <div style="font-weight:700; color:var(--text-main); margin-bottom:4px;">Download/Access the Extension</div>
+            <div style="font-size:12px; color:var(--text-dim); margin-bottom:8px;">Locate the extension directory in the project files (<code>/extension</code> folder).</div>
+          </div>
+        </div>
+        <div style="display:flex; gap:12px; align-items:flex-start;">
+          <div style="min-width:28px; height:28px; border-radius:50%; background:var(--primary); display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:800; color:#fff; flex-shrink:0;">2</div>
+          <div>
+            <div style="font-weight:700; color:var(--text-main); margin-bottom:4px;">Install in Chrome / Edge / Brave</div>
+            <div style="font-size:12px; color:var(--text-dim);">
+              Open <b>chrome://extensions</b> in your browser.<br>
+              Enable <b>"Developer mode"</b> (top right toggle).<br>
+              Click <b>"Load unpacked"</b> (top left button) and select the <b><code>extension</code></b> folder.
+            </div>
+          </div>
+        </div>
+        <div style="display:flex; gap:12px; align-items:flex-start;">
+          <div style="min-width:28px; height:28px; border-radius:50%; background:var(--primary); display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:800; color:#fff; flex-shrink:0;">3</div>
+          <div>
+            <div style="font-weight:700; color:var(--text-main); margin-bottom:4px;">1-Click Sync on DSU ERP</div>
+            <div style="font-size:12px; color:var(--text-dim);">Go to your ERP Attendance Summary page. A beautiful floating <b>⚡ Sync to Wormhole</b> button will appear at the bottom-right. Click it to sync instantly!</div>
+          </div>
+        </div>
+      </div>
+    `;
+
     // Method A — Chrome/Firefox: drag bookmarklet
     const chromeMethod = `
       <div style="display:flex; flex-direction:column; gap:14px;">
@@ -442,7 +476,7 @@ class WormholeApp {
       </div>
     `;
 
-    // Always show both tabs so users can switch
+    // Always show tabs so users can switch
     const modal = document.createElement("div");
     modal.id = "erpSyncGuideModal";
     modal.className = "cmd-backdrop open";
@@ -455,10 +489,12 @@ class WormholeApp {
         <div class="modal-body">
           <!-- Browser tabs -->
           <div style="display:flex; gap:0; margin-bottom:16px; border-bottom:1px solid var(--border-subtle);">
-            <button id="syncTabChrome" onclick="Wormhole._switchSyncTab('chrome')" style="padding:8px 16px; background:${!isSafari ? 'rgba(139,92,246,0.15)' : 'transparent'}; border:none; border-bottom:2px solid ${!isSafari ? 'var(--primary)' : 'transparent'}; color:${!isSafari ? 'var(--primary-light)' : 'var(--text-dim)'}; font-size:12px; font-weight:700; cursor:pointer;">🟢 Chrome / Firefox</button>
-            <button id="syncTabSafari" onclick="Wormhole._switchSyncTab('safari')" style="padding:8px 16px; background:${isSafari ? 'rgba(139,92,246,0.15)' : 'transparent'}; border:none; border-bottom:2px solid ${isSafari ? 'var(--primary)' : 'transparent'}; color:${isSafari ? 'var(--primary-light)' : 'var(--text-dim)'}; font-size:12px; font-weight:700; cursor:pointer;">🧭 Safari</button>
+            <button id="syncTabExtension" onclick="Wormhole._switchSyncTab('extension')" style="padding:8px 16px; background:${!isSafari ? 'rgba(139,92,246,0.15)' : 'transparent'}; border:none; border-bottom:2px solid ${!isSafari ? 'var(--primary)' : 'transparent'}; color:${!isSafari ? 'var(--primary-light)' : 'var(--text-dim)'}; font-size:12px; font-weight:700; cursor:pointer;">🔥 Chrome Extension</button>
+            <button id="syncTabChrome" onclick="Wormhole._switchSyncTab('chrome')" style="padding:8px 16px; background:transparent; border:none; border-bottom:2px solid transparent; color:var(--text-dim); font-size:12px; font-weight:700; cursor:pointer;">🟢 Drag Bookmarklet</button>
+            <button id="syncTabSafari" onclick="Wormhole._switchSyncTab('safari')" style="padding:8px 16px; background:${isSafari ? 'rgba(139,92,246,0.15)' : 'transparent'}; border:none; border-bottom:2px solid ${isSafari ? 'var(--primary)' : 'transparent'}; color:${isSafari ? 'var(--primary-light)' : 'var(--text-dim)'}; font-size:12px; font-weight:700; cursor:pointer;">🧭 Safari / Manual</button>
           </div>
-          <div id="syncMethodChrome" style="display:${!isSafari ? 'block' : 'none'}">${chromeMethod}</div>
+          <div id="syncMethodExtension" style="display:${!isSafari ? 'block' : 'none'}">${extensionMethod}</div>
+          <div id="syncMethodChrome" style="display:none">${chromeMethod}</div>
           <div id="syncMethodSafari" style="display:${isSafari ? 'block' : 'none'}">${safariMethod}</div>
 
           <div style="margin-top:16px; background:rgba(16,185,129,0.06); border:1px solid rgba(16,185,129,0.2); border-radius:var(--radius-sm); padding:10px 12px; font-size:11.5px; color:var(--free-text);">
@@ -496,10 +532,17 @@ class WormholeApp {
 
     // Tab switching
     window.Wormhole._switchSyncTab = (tab) => {
+      document.getElementById("syncMethodExtension").style.display = tab === "extension" ? "block" : "none";
       document.getElementById("syncMethodChrome").style.display = tab === "chrome" ? "block" : "none";
       document.getElementById("syncMethodSafari").style.display = tab === "safari" ? "block" : "none";
+      const extBtn = document.getElementById("syncTabExtension");
       const chromeBtn = document.getElementById("syncTabChrome");
       const safariBtn = document.getElementById("syncTabSafari");
+      if (extBtn) {
+        extBtn.style.background = tab === "extension" ? "rgba(139,92,246,0.15)" : "transparent";
+        extBtn.style.borderBottomColor = tab === "extension" ? "var(--primary)" : "transparent";
+        extBtn.style.color = tab === "extension" ? "var(--primary-light)" : "var(--text-dim)";
+      }
       if (chromeBtn) {
         chromeBtn.style.background = tab === "chrome" ? "rgba(139,92,246,0.15)" : "transparent";
         chromeBtn.style.borderBottomColor = tab === "chrome" ? "var(--primary)" : "transparent";
