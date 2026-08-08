@@ -353,6 +353,10 @@ class WormholeApp {
       // Set the smart bookmarklet that parses ERP DOM and opens Wormhole with #att= hash
       bookmarkletBtn.setAttribute("href", this.generateSmartBookmarklet());
       bookmarkletBtn.setAttribute("title", "Drag to bookmarks bar. Then go to ums.mydsi.org Attendance Summary and click it. Wormhole opens with your live data pre-loaded.");
+      bookmarkletBtn.addEventListener("click", (e) => {
+        e.preventDefault();
+        this.showERPSyncGuide();
+      });
     }
 
     // Also wire the "How to Sync" guide button if present
@@ -471,7 +475,13 @@ class WormholeApp {
 
     // Set drag bookmarklet
     const drag = document.getElementById("erpBookmarkletDrag");
-    if (drag) drag.setAttribute("href", bookmarkletCode);
+    if (drag) {
+      drag.setAttribute("href", bookmarkletCode);
+      drag.addEventListener("click", (e) => {
+        e.preventDefault();
+        alert("💡 How to use this Bookmarklet:\n\n1. Do NOT click or open this button in a new tab directly.\n2. DRAG this button to your browser's Bookmarks Bar.\n   (If your Bookmarks Bar is hidden, press Ctrl+Shift+B or Cmd+Shift+B to show it)\n3. Navigate to ums.mydsi.org → Attendance Summary page, then click the bookmark you just saved.\n\nIf dragging doesn't work, click the 'Safari' tab at the top of this popup to copy the bookmarklet code manually!");
+      });
+    }
 
     // Copy code button
     const copyBtn = document.getElementById("copyBookmarkletBtn");
