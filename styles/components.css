@@ -1172,3 +1172,54 @@ footer.app-footer {
   color: var(--text-dim);
   font-size: 12px;
 }
+
+/* Scenario Simulator Buttons */
+.scenario-btn {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-dim);
+  padding: 6px 12px;
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  white-space: nowrap;
+}
+
+.scenario-btn:hover {
+  background: rgba(255, 255, 255, 0.09);
+  border-color: var(--border-medium);
+  color: var(--text-main);
+}
+
+.scenario-btn.active {
+  background: rgba(139, 92, 246, 0.15);
+  border-color: rgba(139, 92, 246, 0.45);
+  color: var(--primary-light);
+}
+
+/* Step button color variants */
+.step-btn.step-minus:hover { background: rgba(239, 68, 68, 0.15); border-color: rgba(239,68,68,0.35); color: #EF4444; }
+.step-btn.step-plus:hover  { background: rgba(16, 185, 129, 0.15); border-color: rgba(16,185,129,0.35); color: #10B981; }
+
+/* Form textarea */
+.form-textarea {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-main);
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  outline: none;
+  resize: vertical;
+  transition: all var(--transition-fast);
+}
+
+.form-textarea:focus {
+  border-color: var(--primary);
+  background: rgba(255, 255, 255, 0.07);
+  box-shadow: 0 0 12px var(--primary-glow);
+}

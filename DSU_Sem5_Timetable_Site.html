@@ -266,64 +266,88 @@
 
   <!-- STUDENT PROFILE MODAL -->
   <div id="profileModal" class="cmd-backdrop">
-    <div class="cmd-box">
+    <div class="cmd-box" style="max-width:520px;">
       <div class="modal-header">
-        <h3 style="font-size:16px; font-weight:700;">👤 Student Personalization Profile</h3>
+        <h3 style="font-size:16px; font-weight:700;">👤 Student Profile</h3>
         <button class="chip-remove" id="closeProfileModalBtn" style="font-size:18px;">&times;</button>
       </div>
       <div class="modal-body">
-        <div class="form-group">
-          <label class="form-label">Assigned Section</label>
-          <select id="profileSectionSelect" class="form-select">
-            <option value="A">Section 5A</option>
-            <option value="B">Section 5B</option>
-            <option value="C">Section 5C</option>
-            <option value="D">Section 5D</option>
-            <option value="E">Section 5E</option>
-            <option value="F">Section 5F</option>
-            <option value="G">Section 5G</option>
-            <option value="H" selected>Section 5H</option>
-            <option value="I">Section 5I</option>
-            <option value="J">Section 5J</option>
-            <option value="K">Section 5K</option>
-            <option value="L">Section 5L</option>
-          </select>
+
+        <!-- Identity Block -->
+        <div style="margin-bottom:18px; padding-bottom:16px; border-bottom:1px solid var(--border-subtle);">
+          <div style="font-size:10px; font-weight:700; letter-spacing:0.08em; color:var(--text-dim); text-transform:uppercase; margin-bottom:12px;">Identity</div>
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+            <div class="form-group" style="margin:0;">
+              <label class="form-label">Full Name</label>
+              <input type="text" id="profileNameInput" class="form-input" placeholder="e.g. N BHARATH" maxlength="40" />
+            </div>
+            <div class="form-group" style="margin:0;">
+              <label class="form-label">USN</label>
+              <input type="text" id="profileUsnInput" class="form-input" placeholder="e.g. ENG24CS0537" maxlength="15" style="text-transform:uppercase;" />
+            </div>
+          </div>
         </div>
 
-        <div class="form-group">
-          <label class="form-label">Lab Batch Division (Half-Section Partition)</label>
-          <select id="profileBatchSelect" class="form-select">
-            <option value="1">Batch 1 (First Half — e.g. 5H1)</option>
-            <option value="2" selected>Batch 2 (Second Half — e.g. 5H2)</option>
-          </select>
-          <small style="color:var(--text-dim); font-size:11px; display:block; margin-top:4px;">
-            Auto-resolves lab swaps (e.g. ML Lab vs GPU Architecture Lab rooms).
-          </small>
+        <!-- Academic Config Block -->
+        <div style="margin-bottom:18px; padding-bottom:16px; border-bottom:1px solid var(--border-subtle);">
+          <div style="font-size:10px; font-weight:700; letter-spacing:0.08em; color:var(--text-dim); text-transform:uppercase; margin-bottom:12px;">Academic Assignment</div>
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+            <div class="form-group" style="margin:0;">
+              <label class="form-label">Assigned Section</label>
+              <select id="profileSectionSelect" class="form-select">
+                <option value="A">Section 5A</option>
+                <option value="B">Section 5B</option>
+                <option value="C">Section 5C</option>
+                <option value="D">Section 5D</option>
+                <option value="E">Section 5E</option>
+                <option value="F">Section 5F</option>
+                <option value="G">Section 5G</option>
+                <option value="H" selected>Section 5H</option>
+                <option value="I">Section 5I</option>
+                <option value="J">Section 5J</option>
+                <option value="K">Section 5K</option>
+                <option value="L">Section 5L</option>
+              </select>
+            </div>
+            <div class="form-group" style="margin:0;">
+              <label class="form-label">Lab Batch</label>
+              <select id="profileBatchSelect" class="form-select">
+                <option value="1">Batch 1 (First Half · e.g. 5H1)</option>
+                <option value="2" selected>Batch 2 (Second Half · e.g. 5H2)</option>
+              </select>
+              <small style="color:var(--text-dim); font-size:10.5px; display:block; margin-top:3px;">Auto-resolves ML ↔ GPU lab room swaps</small>
+            </div>
+          </div>
         </div>
 
-        <div class="form-group">
-          <label class="form-label">PE-1 Elective Track</label>
-          <select id="profileElectiveSelect" class="form-select">
-            <option value="24CS3508" selected>Track 01: 24CS3508 — AI for Business Analytics</option>
-            <option value="24CS3509">Track 02: 24CS3509 — Deep Learning</option>
-            <option value="24CS3511">Track 03: 24CS3511 — Cloud Computing</option>
-            <option value="24CS3512">Track 04: 24CS3512 — Introduction to XR & Immersive Technologies</option>
-            <option value="24CS3513">Track 05: 24CS3513 — Computer Graphics</option>
-          </select>
+        <!-- PE-1 Elective Block -->
+        <div>
+          <div style="font-size:10px; font-weight:700; letter-spacing:0.08em; color:var(--text-dim); text-transform:uppercase; margin-bottom:12px;">PE-1 Elective</div>
+          <div class="form-group">
+            <label class="form-label">Elective Track</label>
+            <select id="profileElectiveSelect" class="form-select">
+              <option value="24CS3508" selected>Track 01: 24CS3508 — AI for Business Analytics</option>
+              <option value="24CS3509">Track 02: 24CS3509 — Deep Learning</option>
+              <option value="24CS3511">Track 03: 24CS3511 — Cloud Computing</option>
+              <option value="24CS3512">Track 04: 24CS3512 — Introduction to XR &amp; Immersive Technologies</option>
+              <option value="24CS3513">Track 05: 24CS3513 — Computer Graphics</option>
+            </select>
+          </div>
+          <div class="form-group" style="margin-top:10px;">
+            <label class="form-label">Assigned Faculty Mentor &amp; Room</label>
+            <select id="profileElectiveFacultySelect" class="form-select">
+              <option value="Prof. Goutham T R (Gowtham)||A432" selected>Prof. Goutham T R (Gowtham) · Room A432</option>
+              <option value="Prof. Sruthi Yapalaparvi||A424">Prof. Sruthi Yapalaparvi · Room A424</option>
+              <option value="Prof. Pooja shree H R||A431">Prof. Pooja shree H R · Room A431</option>
+              <option value="Prof. Prajwal S P||A433">Prof. Prajwal S P · Room A433</option>
+              <option value="Prof. Sriparna Paul||A437">Prof. Sriparna Paul · Room A437</option>
+            </select>
+          </div>
         </div>
 
-        <div class="form-group">
-          <label class="form-label">Assigned PE-1 Faculty Mentor & Room Venue</label>
-          <select id="profileElectiveFacultySelect" class="form-select">
-            <option value="Prof. Goutham T R (Gowtham)||A432" selected>Prof. Goutham T R (Gowtham) (Room A432)</option>
-            <option value="Prof. Sruthi Yapalaparvi||A424">Prof. Sruthi Yapalaparvi (Room A424)</option>
-            <option value="Prof. Pooja shree H R||A431">Prof. Pooja shree H R (Room A431)</option>
-            <option value="Prof. Prajwal S P||A433">Prof. Prajwal S P (Room A433)</option>
-            <option value="Prof. Sriparna Paul||A437">Prof. Sriparna Paul (Room A437)</option>
-          </select>
-        </div>
       </div>
-      <div class="modal-footer">
+      <div class="modal-footer" style="display:flex; justify-content:space-between; align-items:center;">
+        <span id="profileSaveStatus" style="font-size:11.5px; color:var(--free-text); opacity:0; transition:opacity 0.3s;"></span>
         <button class="btn-solid" id="saveProfileBtn">Save Profile</button>
       </div>
     </div>
@@ -331,42 +355,66 @@
 
   <!-- DSU ERP ATTENDANCE & BUNK SIMULATOR MODAL -->
   <div id="attendanceModal" class="cmd-backdrop">
-    <div class="cmd-box" style="max-width:820px;">
+    <div class="cmd-box" style="max-width:900px; width:95vw;">
       <div class="modal-header">
         <div style="display:flex; align-items:center; gap:10px;">
-          <h3 style="font-size:16px; font-weight:700;">📊 DSU ERP Attendance & 75% Bunk Simulator</h3>
+          <h3 style="font-size:16px; font-weight:700;">📊 DSU Attendance Copilot</h3>
           <span class="badge-version">ums.mydsi.org</span>
         </div>
-        <button class="chip-remove" id="closeAttendanceModalBtn" style="font-size:18px;">&times;</button>
+        <div style="display:flex; align-items:center; gap:8px;">
+          <a id="dsuBookmarkletLink" class="nav-btn" href="#" style="color:var(--accent-cyan); font-size:11px;" title="Drag to bookmarks bar to grab ERP data in one click">⭐ ERP Bookmarklet</a>
+          <button id="resetAttendanceBtn" class="nav-btn" style="font-size:11px;">↺ Reset</button>
+          <button class="chip-remove" id="closeAttendanceModalBtn" style="font-size:18px;">&times;</button>
+        </div>
       </div>
+
       <div class="modal-body">
-        <div style="margin-bottom:16px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
-          <p style="font-size:12.5px; color:var(--text-muted); margin:0;">
-            Real-time status based on Dayananda Sagar University ERP. Click <b style="color:var(--free-text);">+1</b> or <b style="color:#EF4444;">-1</b> to simulate future classes.
-          </p>
-          <div style="display:flex; gap:8px;">
-            <a id="dsuBookmarkletLink" class="nav-btn" href="#" style="color:var(--accent-cyan); font-size:11px;" title="Drag this to your browser bookmarks bar">
-              ⭐ 1-Click ERP Bookmarklet
-            </a>
-            <button id="resetAttendanceBtn" class="nav-btn" style="font-size:11px;">
-              ↺ Reset
-            </button>
+
+        <!-- Top: Overall Summary Strip -->
+        <div id="attendanceSummaryStrip" style="display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin-bottom:18px; padding-bottom:16px; border-bottom:1px solid var(--border-subtle);"></div>
+
+        <!-- Scenario Switcher -->
+        <div style="margin-bottom:14px;">
+          <div style="font-size:10px; font-weight:700; letter-spacing:0.08em; color:var(--text-dim); text-transform:uppercase; margin-bottom:8px;">Simulation Scenario</div>
+          <div style="display:flex; gap:8px; flex-wrap:wrap;" id="scenarioBtnGroup">
+            <button class="scenario-btn active" data-scenario="actual" id="scen-actual">📋 Actual (ERP)</button>
+            <button class="scenario-btn" data-scenario="attend5" id="scen-attend5">✅ If I attend next 5</button>
+            <button class="scenario-btn" data-scenario="miss5" id="scen-miss5">❌ If I miss next 5</button>
+            <button class="scenario-btn" data-scenario="attendall" id="scen-attendall">🚀 If I attend all remaining</button>
+            <button class="scenario-btn" data-scenario="missall" id="scen-missall">💀 Worst Case (miss all)</button>
+            <button class="scenario-btn" data-scenario="custom" id="scen-custom">🎛 Custom</button>
+          </div>
+
+          <!-- Custom scenario controls (hidden by default) -->
+          <div id="customScenarioPanel" style="display:none; margin-top:10px; background:rgba(255,255,255,0.03); border:1px solid var(--border-subtle); border-radius:var(--radius-sm); padding:12px;">
+            <div style="font-size:11.5px; color:var(--text-dim); margin-bottom:10px;">Set how many future classes you plan to attend or skip <em>across all subjects</em>:</div>
+            <div style="display:flex; gap:12px; align-items:center; flex-wrap:wrap;">
+              <label style="font-size:12px; color:var(--text-main); display:flex; align-items:center; gap:8px;">
+                Future classes to attend: <input type="number" id="customAttend" min="0" max="50" value="3" style="width:60px;" class="form-input" />
+              </label>
+              <label style="font-size:12px; color:var(--text-main); display:flex; align-items:center; gap:8px;">
+                Future classes to miss: <input type="number" id="customMiss" min="0" max="50" value="2" style="width:60px;" class="form-input" />
+              </label>
+              <button class="btn-solid" id="applyCustomScenarioBtn" style="padding:6px 14px; font-size:12px;">Apply</button>
+            </div>
           </div>
         </div>
+
+        <!-- Scenario Result Insight Banner -->
+        <div id="scenarioInsightBanner" style="display:none; margin-bottom:14px; padding:10px 14px; border-radius:var(--radius-sm); font-size:12.5px; border:1px solid; font-weight:500;"></div>
 
         <!-- Attendance Table -->
         <div class="matrix-container" style="margin:0 0 16px;">
           <table class="dir-table" style="font-size:12px;">
             <thead>
               <tr>
-                <th>Code</th>
                 <th>Course</th>
-                <th>Total</th>
-                <th>Pres</th>
-                <th>Abs</th>
-                <th>Pct</th>
-                <th>75% Bunk Margin</th>
-                <th>Simulate</th>
+                <th style="text-align:center;">Conducted</th>
+                <th style="text-align:center;">Present</th>
+                <th style="text-align:center;">Absent</th>
+                <th style="text-align:center;">Attendance %</th>
+                <th>Status &amp; Buffer</th>
+                <th style="text-align:center; white-space:nowrap;">Manual ±</th>
               </tr>
             </thead>
             <tbody id="attendanceModalTableBody"></tbody>
@@ -374,19 +422,19 @@
         </div>
 
         <!-- Raw Text / Report Parser -->
-        <details style="margin-top:12px; background:var(--bg-surface); padding:12px; border-radius:6px; border:1px solid var(--border-subtle);">
-          <summary style="font-size:12px; font-weight:600; color:var(--text-muted); cursor:pointer;">
-            📋 Paste Raw Report or Text from ums.mydsi.org
+        <details style="margin-top:4px; background:var(--bg-surface); padding:12px; border-radius:6px; border:1px solid var(--border-subtle);">
+          <summary style="font-size:12px; font-weight:600; color:var(--text-dim); cursor:pointer;">
+            📋 Paste raw text from ums.mydsi.org to sync your actual data
           </summary>
           <div style="margin-top:10px;">
-            <textarea id="attendancePasteArea" class="form-textarea" rows="4" placeholder="Paste the downloaded text from DSU ERP or table here (e.g. 24CS3501 GPU Architecture 3 3 0)..."></textarea>
-            <div style="margin-top:8px; text-align:right;">
-              <button id="parseAttendanceTextBtn" class="btn-solid" style="padding:6px 14px; font-size:12px;">
-                ⚡ Parse & Sync Attendance
-              </button>
+            <textarea id="attendancePasteArea" class="form-textarea" rows="4" placeholder="Paste text copied from DSU ERP attendance table here (e.g. 24CS3501 GPU ARCHITECTURE 3 3 0 100%)..."></textarea>
+            <div style="margin-top:8px; display:flex; justify-content:space-between; align-items:center;">
+              <span style="font-size:11px; color:var(--text-dim);">Supports pasted table rows with course codes (24CS35XX) and numbers.</span>
+              <button id="parseAttendanceTextBtn" class="btn-solid" style="padding:6px 14px; font-size:12px;">⚡ Parse &amp; Sync</button>
             </div>
           </div>
         </details>
+
       </div>
     </div>
   </div>

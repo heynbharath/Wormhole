@@ -124,7 +124,13 @@ class WormholeApp {
       this.profileModalOpen = true;
       if (modal) modal.classList.add("open");
 
-      // Fill current values
+      // Fill identity fields
+      const nameInput = document.getElementById("profileNameInput");
+      const usnInput = document.getElementById("profileUsnInput");
+      if (nameInput) nameInput.value = this.profile.name || "";
+      if (usnInput) usnInput.value = this.profile.usn || "";
+
+      // Fill academic fields
       const secSelect = document.getElementById("profileSectionSelect");
       const batchSelect = document.getElementById("profileBatchSelect");
       const electiveSelect = document.getElementById("profileElectiveSelect");
@@ -138,6 +144,10 @@ class WormholeApp {
       }
 
       this.updateElectiveFacultyOptions();
+
+      // Hide status
+      const status = document.getElementById("profileSaveStatus");
+      if (status) status.style.opacity = "0";
     };
 
     window.closeProfileModal = () => {
@@ -159,6 +169,8 @@ class WormholeApp {
 
     if (saveBtn) {
       saveBtn.addEventListener("click", () => {
+        const nameVal = (document.getElementById("profileNameInput")?.value || "").trim().toUpperCase() || this.profile.name;
+        const usnVal = (document.getElementById("profileUsnInput")?.value || "").trim().toUpperCase() || this.profile.usn;
         const sec = document.getElementById("profileSectionSelect").value;
         const batch = parseInt(document.getElementById("profileBatchSelect").value, 10);
         const electiveCode = document.getElementById("profileElectiveSelect").value;
@@ -176,6 +188,8 @@ class WormholeApp {
         const cleanName = electiveObj.name.includes("—") ? electiveObj.name.split("—")[1].trim() : electiveObj.name;
 
         this.saveProfile({
+          name: nameVal,
+          usn: usnVal,
           section: sec,
           labBatch: batch,
           pe1: {
@@ -186,8 +200,16 @@ class WormholeApp {
           },
         });
 
+        // Show inline save confirmation
+        const status = document.getElementById("profileSaveStatus");
+        if (status) {
+          status.textContent = "✓ Saved";
+          status.style.opacity = "1";
+          setTimeout(() => { status.style.opacity = "0"; }, 2000);
+        }
+
         WormholeAudio.resonance();
-        window.closeProfileModal();
+        setTimeout(() => window.closeProfileModal(), 400);
       });
     }
   }
@@ -263,11 +285,14 @@ class WormholeApp {
     const parseBtn = document.getElementById("parseAttendanceTextBtn");
     const resetBtn = document.getElementById("resetAttendanceBtn");
 
+    this.activeScenario = "actual"; // track current scenario
+
     window.openAttendanceModal = () => {
       WormholeAudio.tick();
       this.attendanceModalOpen = true;
       if (modal) modal.classList.add("open");
-      this.renderAttendanceModalTable();
+      this.activeScenario = "actual";
+      this.applyScenario("actual");
     };
 
     window.closeAttendanceModal = () => {
@@ -293,23 +318,147 @@ class WormholeApp {
       resetBtn.addEventListener("click", () => {
         WormholeAudio.tick();
         this.saveAttendance(JSON.parse(JSON.stringify(DEFAULT_DSU_ATTENDANCE)));
-        this.renderAttendanceModalTable();
+        this.activeScenario = "actual";
+        this.applyScenario("actual");
       });
     }
+
+    // Scenario buttons
+    document.getElementById("scenarioBtnGroup")?.addEventListener("click", (e) => {
+      const btn = e.target.closest(".scenario-btn");
+      if (!btn) return;
+      const scen = btn.dataset.scenario;
+      this.activeScenario = scen;
+      document.querySelectorAll(".scenario-btn").forEach((b) => b.classList.remove("active"));
+      btn.classList.add("active");
+
+      const customPanel = document.getElementById("customScenarioPanel");
+      if (customPanel) customPanel.style.display = scen === "custom" ? "block" : "none";
+
+      if (scen !== "custom") this.applyScenario(scen);
+    });
+
+    // Custom apply button
+    document.getElementById("applyCustomScenarioBtn")?.addEventListener("click", () => {
+      this.applyScenario("custom");
+    });
 
     // Bookmarklet generator
     const bookmarkletBtn = document.getElementById("dsuBookmarkletLink");
     if (bookmarkletBtn) {
       const code = `javascript:(function(){
         try {
-          var rows = document.querySelectorAll('table tbody tr');
           var text = document.body.innerText;
-          alert('Wormhole: Attendance copied! Open Wormhole and click Sync DSU ERP to paste.');
-          navigator.clipboard.writeText(text);
-        } catch(e) { alert('Error reading DSU ERP: ' + e); }
+          navigator.clipboard.writeText(text).then(function(){
+            alert('Wormhole: ERP data copied! Paste into the Wormhole attendance sync box.');
+          });
+        } catch(e) { alert('Error: ' + e); }
       })();`;
       bookmarkletBtn.setAttribute("href", code);
     }
+  }
+
+  applyScenario(scenario) {
+    // Deep-clone real attendance as base
+    const base = JSON.parse(JSON.stringify(this.attendance));
+
+    // "remaining weeks" estimate — roughly 15 weeks × 5 theory days × 1 slot avg = ~75 left
+    const REMAINING_PER_COURSE = 30; // approx remaining slots per course in semester
+
+    base.courses = base.courses.map((c) => {
+      let { conducted, present } = c;
+
+      if (scenario === "actual") {
+        // No change
+      } else if (scenario === "attend5") {
+        conducted += 5; present += 5;
+      } else if (scenario === "miss5") {
+        conducted += 5; // present stays same
+      } else if (scenario === "attendall") {
+        conducted += REMAINING_PER_COURSE; present += REMAINING_PER_COURSE;
+      } else if (scenario === "missall") {
+        conducted += REMAINING_PER_COURSE; // present stays same
+      } else if (scenario === "custom") {
+        const attend = parseInt(document.getElementById("customAttend")?.value || "0", 10);
+        const miss = parseInt(document.getElementById("customMiss")?.value || "0", 10);
+        conducted += attend + miss;
+        present += attend;
+      }
+
+      const absent = conducted - present;
+      const pct = conducted > 0 ? parseFloat(((present / conducted) * 100).toFixed(2)) : 100;
+      return { ...c, conducted, present, absent, pct };
+    });
+
+    this.simulatedAttendance = base;
+    this.renderAttendanceSummaryStrip(scenario);
+    this.renderAttendanceModalTable();
+    this.renderScenarioInsight(scenario, base);
+  }
+
+  renderAttendanceSummaryStrip(scenario) {
+    const strip = document.getElementById("attendanceSummaryStrip");
+    if (!strip) return;
+
+    const courses = this.simulatedAttendance.courses;
+    const totalConducted = courses.reduce((s, c) => s + c.conducted, 0);
+    const totalPresent = courses.reduce((s, c) => s + c.present, 0);
+    const totalAbsent = totalConducted - totalPresent;
+    const overallPct = totalConducted > 0 ? ((totalPresent / totalConducted) * 100).toFixed(1) : "100.0";
+    const isSafe = parseFloat(overallPct) >= 75;
+    const dangerCount = courses.filter((c) => this.calculateHealth(c.conducted, c.present).pct < 75).length;
+
+    const cards = [
+      { label: "Overall Attendance", value: `${overallPct}%`, color: isSafe ? "var(--free-text)" : "#EF4444" },
+      { label: "Classes Attended", value: `${totalPresent} / ${totalConducted}`, color: "var(--text-main)" },
+      { label: "Absences", value: `${totalAbsent}`, color: totalAbsent > 0 ? "#FBBF24" : "var(--free-text)" },
+      { label: scenario === "actual" ? "Subjects at Risk" : "At Risk (Simulated)", value: `${dangerCount} subject${dangerCount !== 1 ? "s" : ""}`, color: dangerCount > 0 ? "#EF4444" : "var(--free-text)" },
+    ];
+
+    strip.innerHTML = cards.map((c) => `
+      <div style="background:rgba(255,255,255,0.03); border:1px solid var(--border-subtle); border-radius:var(--radius-sm); padding:10px 14px;">
+        <div style="font-size:10px; text-transform:uppercase; letter-spacing:0.06em; color:var(--text-dim); margin-bottom:4px;">${c.label}</div>
+        <div style="font-size:20px; font-weight:800; font-family:var(--font-mono); color:${c.color};">${c.value}</div>
+      </div>
+    `).join("");
+  }
+
+  renderScenarioInsight(scenario, simData) {
+    const banner = document.getElementById("scenarioInsightBanner");
+    if (!banner) return;
+
+    if (scenario === "actual") {
+      banner.style.display = "none";
+      return;
+    }
+
+    const courses = simData.courses;
+    const safe = courses.filter((c) => this.calculateHealth(c.conducted, c.present).pct >= 75).length;
+    const danger = courses.filter((c) => this.calculateHealth(c.conducted, c.present).pct < 75).length;
+    const totalPct = (() => {
+      const tc = courses.reduce((s, c) => s + c.conducted, 0);
+      const tp = courses.reduce((s, c) => s + c.present, 0);
+      return tc > 0 ? ((tp / tc) * 100).toFixed(1) : "100.0";
+    })();
+
+    const scenarioLabels = {
+      attend5: "📋 Scenario: If you attend the next 5 classes in each subject",
+      miss5: "⚠️ Scenario: If you skip the next 5 classes in each subject",
+      attendall: "🚀 Scenario: If you attend ALL remaining classes",
+      missall: "💀 Worst Case: If you miss ALL remaining classes",
+      custom: "🎛 Custom Scenario applied",
+    };
+
+    const isGood = parseFloat(totalPct) >= 75;
+    banner.style.display = "block";
+    banner.style.background = isGood ? "rgba(16, 185, 129, 0.08)" : "rgba(239, 68, 68, 0.08)";
+    banner.style.borderColor = isGood ? "rgba(16, 185, 129, 0.3)" : "rgba(239, 68, 68, 0.3)";
+    banner.style.color = isGood ? "var(--free-text)" : "#EF4444";
+    banner.innerHTML = `
+      <span style="opacity:0.7; font-size:11px;">${scenarioLabels[scenario] || ""}</span><br>
+      Overall attendance would be <b>${totalPct}%</b> · ${safe} subject${safe !== 1 ? "s" : ""} safe
+      ${danger > 0 ? ` · <span style="color:#EF4444;">${danger} at risk</span>` : " · <b>All clear!</b>"}
+    `;
   }
 
   parseERPText(text) {
@@ -424,32 +573,48 @@ class WormholeApp {
     if (!tbody) return;
     tbody.innerHTML = "";
 
+    const isSimulated = this.activeScenario && this.activeScenario !== "actual";
+
     this.simulatedAttendance.courses.forEach((c, idx) => {
       const h = this.calculateHealth(c.conducted, c.present);
       const tr = document.createElement("tr");
 
-      const badgeColor = h.isSafe ? "var(--free-text)" : "#EF4444";
+      // Status badge
+      const statusColor = { EXCELLENT: "#10B981", SAFE: "#34D399", WARNING: "#FBBF24", CRITICAL: "#EF4444" };
+      const statusBg = { EXCELLENT: "rgba(16,185,129,0.1)", SAFE: "rgba(52,211,153,0.1)", WARNING: "rgba(251,191,36,0.1)", CRITICAL: "rgba(239,68,68,0.1)" };
+      const sc = statusColor[h.status] || "#aaa";
+      const sb = statusBg[h.status] || "transparent";
+
+      // Advice
       const adviceText = h.isSafe
-        ? `<span style="color:var(--free-text);">✓ Safe · Can skip <b>${h.bunkBuffer}</b> class${h.bunkBuffer === 1 ? "" : "es"}</span>`
-        : `<span style="color:#EF4444; font-weight:600;">🚨 Must attend next <b>${h.classesNeeded}</b> class${h.classesNeeded === 1 ? "" : "es"} for 75%</span>`;
+        ? `<span style="color:var(--free-text);">✓ Can skip <b>${h.bunkBuffer}</b> more</span>`
+        : `<span style="color:#EF4444; font-weight:600;">🚨 Need <b>${h.classesNeeded}</b> more classes</span>`;
+
+      // Progress bar width
+      const barW = Math.min(100, h.pct);
+      const barColor = h.pct >= 85 ? "#10B981" : h.pct >= 75 ? "#34D399" : h.pct >= 65 ? "#FBBF24" : "#EF4444";
 
       tr.innerHTML = `
-        <td class="mono-code">${c.code}</td>
-        <td>
-          <div style="font-weight:600; color:var(--text-main);">${c.name}</div>
-          <div style="font-size:11px; color:var(--text-dim);">${c.faculty || ""}</div>
+        <td style="min-width:180px;">
+          <div style="font-weight:600; color:var(--text-main); font-size:12.5px;">${c.name}</div>
+          <div style="font-size:10.5px; color:var(--text-dim); margin-top:1px;">${c.code} · ${c.faculty || ""}</div>
         </td>
-        <td>${c.conducted}</td>
-        <td>${c.present}</td>
-        <td>${c.absent}</td>
-        <td style="font-family:var(--font-mono); font-weight:700; color:${badgeColor}; font-size:14px;">
-          ${h.pct}%
+        <td style="text-align:center; font-family:var(--font-mono); font-size:13px;">${c.conducted}</td>
+        <td style="text-align:center; font-family:var(--font-mono); color:var(--free-text); font-size:13px;">${c.present}</td>
+        <td style="text-align:center; font-family:var(--font-mono); color:${c.absent > 0 ? "#FBBF24" : "var(--text-dim)"}; font-size:13px;">${c.absent}</td>
+        <td style="min-width:110px; text-align:center;">
+          <div style="font-family:var(--font-mono); font-weight:800; font-size:15px; color:${sc};">${h.pct}%</div>
+          <div style="height:4px; border-radius:2px; background:rgba(255,255,255,0.06); margin-top:4px;">
+            <div style="width:${barW}%; height:100%; border-radius:2px; background:${barColor}; transition:width 0.4s;"></div>
+          </div>
+          <div style="font-size:10px; text-align:center; margin-top:3px; color:${sc}; background:${sb}; border-radius:3px; padding:1px 5px; display:inline-block;">${h.status}</div>
         </td>
         <td>${adviceText}</td>
-        <td style="white-space:nowrap;">
+        <td style="text-align:center; white-space:nowrap;">
           <div class="stepper-wrap">
-            <button class="step-btn step-minus" title="Simulate Missed Class" onclick="Wormhole.simulateClassChange(${idx}, 'miss')">-1</button>
-            <button class="step-btn step-plus" title="Simulate Attended Class" onclick="Wormhole.simulateClassChange(${idx}, 'attend')">+1</button>
+            <button class="step-btn step-minus" title="Simulate one miss" onclick="Wormhole.simulateClassChange(${idx}, 'miss')">−</button>
+            <span style="font-family:var(--font-mono); font-size:11px; color:var(--text-dim); min-width:12px; text-align:center;">${isSimulated ? "~" : ""}</span>
+            <button class="step-btn step-plus" title="Simulate one attend" onclick="Wormhole.simulateClassChange(${idx}, 'attend')">+</button>
           </div>
         </td>
       `;
@@ -467,12 +632,17 @@ class WormholeApp {
       c.present += 1;
     } else if (action === "miss") {
       c.conducted += 1;
-      c.absent += 1;
+      c.absent = (c.absent || 0) + 1;
     }
 
+    c.absent = c.conducted - c.present;
     c.pct = parseFloat(((c.present / c.conducted) * 100).toFixed(2));
+
+    this.renderAttendanceSummaryStrip(this.activeScenario || "actual");
     this.renderAttendanceModalTable();
+    this.renderScenarioInsight(this.activeScenario || "actual", this.simulatedAttendance);
   }
+
 
   /* ===================== URL HASH STATE SERIALIZATION ===================== */
   parseURLHash() {
