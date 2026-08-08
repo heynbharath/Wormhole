@@ -1,74 +1,69 @@
 /* ===================================================================
-   WORMHOLE COSMIC THEME & DESIGN TOKENS
-   Deep Space Aesthetics · Glassmorphism · Cyberpunk Neon Signals
+   WORMHOLE AESTHETIC THEME & DESIGN TOKENS
+   Minimalist · Obsidian Void · Hairline Precision · Linear / Cron UX
    =================================================================== */
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:ital,wght@0,400;0,600;0,700;1,400&family=Space+Grotesk:wght@500;600;700&family=Syne:wght@700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap');
 
 :root {
   /* Surfaces & Void */
-  --space-black: #05070D;
-  --space-dark: #090D18;
-  --space-card: rgba(12, 17, 30, 0.75);
-  --space-card-hover: rgba(18, 25, 46, 0.85);
-  --space-border: rgba(255, 255, 255, 0.08);
-  --space-border-strong: rgba(255, 255, 255, 0.16);
-  --space-border-lit: rgba(0, 240, 255, 0.4);
+  --bg-app: #08080A;
+  --bg-surface: #101014;
+  --bg-surface-elevated: #16161C;
+  --bg-surface-hover: #1C1C24;
+  --bg-glass: rgba(16, 16, 20, 0.75);
 
-  /* Primary Quantum Accents */
-  --neon-cyan: #00F0FF;
-  --neon-cyan-glow: rgba(0, 240, 255, 0.35);
-  --neon-purple: #9D00FF;
-  --neon-purple-glow: rgba(157, 0, 255, 0.35);
-  
-  /* Signal Classifications */
-  --free: #00FF9D;
-  --free-bg: rgba(0, 255, 157, 0.12);
-  --free-border: rgba(0, 255, 157, 0.4);
-  --free-glow: rgba(0, 255, 157, 0.25);
+  /* Hairline Borders */
+  --border-subtle: rgba(255, 255, 255, 0.06);
+  --border-medium: rgba(255, 255, 255, 0.12);
+  --border-focus: rgba(255, 255, 255, 0.3);
+  --border-accent: rgba(99, 102, 241, 0.4);
 
-  --skiphigh: #FFB800;
-  --skiphigh-bg: rgba(255, 184, 0, 0.12);
-  --skiphigh-border: rgba(255, 184, 0, 0.4);
+  /* Subtle Modern Accents */
+  --accent-primary: #EDEDED;
+  --accent-indigo: #6366F1;
+  --accent-violet: #8B5CF6;
+  --accent-cyan: #38BDF8;
 
-  --skiplow: #FF8800;
-  --skiplow-bg: rgba(255, 136, 0, 0.10);
-  --skiplow-border: rgba(255, 136, 0, 0.3);
+  /* Semantic Signal Tiers (Subtle, Non-Garish) */
+  --free-text: #34D399;
+  --free-bg: rgba(52, 211, 153, 0.08);
+  --free-border: rgba(52, 211, 153, 0.22);
+  --free-dot: #10B981;
 
-  --locked: #FF3366;
-  --locked-bg: rgba(255, 51, 102, 0.08);
-  --locked-border: rgba(255, 51, 102, 0.25);
+  --flex-text: #FBBF24;
+  --flex-bg: rgba(251, 191, 36, 0.08);
+  --flex-border: rgba(251, 191, 36, 0.22);
+  --flex-dot: #F59E0B;
 
-  --break-pattern: repeating-linear-gradient(
-    135deg,
-    rgba(255, 255, 255, 0.03),
-    rgba(255, 255, 255, 0.03) 6px,
-    rgba(255, 255, 255, 0.06) 6px,
-    rgba(255, 255, 255, 0.06) 12px
-  );
+  --skip-text: #FB923C;
+  --skip-bg: rgba(251, 146, 60, 0.06);
+  --skip-border: rgba(251, 146, 60, 0.18);
+  --skip-dot: #EA580C;
 
-  /* Text Typography */
-  --text-primary: #FFFFFF;
-  --text-secondary: #8E9BB5;
-  --text-muted: #54607B;
+  /* Typography Colors */
+  --text-main: #FFFFFF;
+  --text-muted: #A1A1AA;
+  --text-dim: #71717A;
+  --text-faint: #3F3F46;
 
-  /* Typography Families */
-  --font-display: 'Syne', sans-serif;
-  --font-heading: 'Space Grotesk', sans-serif;
-  --font-body: 'Inter', -apple-system, sans-serif;
+  /* Font Stacks */
+  --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Inter', sans-serif;
   --font-mono: 'JetBrains Mono', monospace;
 
-  /* Radii & Geometry */
-  --radius-sm: 6px;
+  /* Geometry */
+  --radius-xs: 4px;
+  --radius-sm: 8px;
   --radius-md: 12px;
-  --radius-lg: 18px;
-  --radius-pill: 9999px;
+  --radius-lg: 16px;
+  --radius-full: 9999px;
 
-  /* Transitions */
-  --ease-spring: cubic-bezier(0.16, 1, 0.3, 1);
+  /* Motion */
+  --transition-fast: 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+  --transition-smooth: 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-/* Base Styles */
+/* Base Reset & Smoothness */
 * {
   box-sizing: border-box;
   margin: 0;
@@ -77,71 +72,55 @@
 
 html {
   scroll-behavior: smooth;
-  background-color: var(--space-black);
-  color: var(--text-primary);
-  font-family: var(--font-body);
+  background-color: var(--bg-app);
+  color: var(--text-main);
+  font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 body {
-  background-color: var(--space-black);
+  background-color: var(--bg-app);
   background-image: 
-    radial-gradient(circle at 50% 0%, rgba(157, 0, 255, 0.12) 0%, transparent 60%),
-    radial-gradient(circle at 10% 40%, rgba(0, 240, 255, 0.07) 0%, transparent 50%),
-    radial-gradient(circle at 90% 80%, rgba(0, 255, 157, 0.05) 0%, transparent 50%);
+    radial-gradient(ellipse 80% 50% at 50% -20%, rgba(99, 102, 241, 0.08), transparent),
+    radial-gradient(ellipse 60% 30% at 80% 60%, rgba(139, 92, 246, 0.04), transparent);
   min-height: 100vh;
+  color: var(--text-main);
   overflow-x: hidden;
-  position: relative;
+  line-height: 1.5;
 }
 
-/* Custom Cosmic Scrollbar */
+/* Minimalist Scrollbar */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: var(--space-black);
+  background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.15);
-  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: var(--radius-full);
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--neon-cyan);
-  box-shadow: 0 0 10px var(--neon-cyan-glow);
+  background: rgba(255, 255, 255, 0.2);
 }
 
-/* Keyframe Animations */
-@keyframes pulseGlow {
+/* Minimal Micro Animations */
+@keyframes subtlePulse {
+  0%, 100% { opacity: 0.9; }
+  50% { opacity: 0.4; }
+}
+
+@keyframes liveGlow {
   0%, 100% {
-    box-shadow: 0 0 15px rgba(0, 240, 255, 0.3);
-    border-color: rgba(0, 240, 255, 0.6);
+    box-shadow: 0 0 0 1px rgba(99, 102, 241, 0.3);
   }
   50% {
-    box-shadow: 0 0 30px rgba(0, 240, 255, 0.65), inset 0 0 15px rgba(0, 240, 255, 0.2);
-    border-color: var(--neon-cyan);
+    box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.6), 0 0 16px rgba(99, 102, 241, 0.25);
   }
 }
 
-@keyframes radarSweep {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-
-@keyframes floatSubtle {
-  0%, 100% { transform: translateY(0px); }
-  50% { transform: translateY(-6px); }
-}
-
-@keyframes shimmer {
-  0% { background-position: -200% 0; }
-  100% { background-position: 200% 0; }
-}
-
-.anim-float {
-  animation: floatSubtle 4s ease-in-out infinite;
-}
-
-.anim-pulse {
-  animation: pulseGlow 2.5s infinite;
+.animate-pulse {
+  animation: subtlePulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }

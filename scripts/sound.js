@@ -1,6 +1,6 @@
 /**
- * WORMHOLE Audio Engine
- * Zero-asset, native Web Audio API synthesis for tactical micro-interactions.
+ * WORMHOLE Minimalist Tactile Audio Engine
+ * Haptic-inspired Web Audio synthesis with subtle, non-intrusive micro-feedback.
  */
 
 class WormholeSoundEngine {
@@ -19,7 +19,7 @@ class WormholeSoundEngine {
         this.initialized = true;
       }
     } catch (e) {
-      console.warn("Wormhole Audio Context initialization bypassed:", e);
+      console.warn("Audio Context init bypassed:", e);
     }
   }
 
@@ -41,7 +41,7 @@ class WormholeSoundEngine {
   }
 
   /**
-   * Tactile subtle click for button presses & tab navigation
+   * Tactile haptic tick (like Apple / Linear keyboard tick)
    */
   tick() {
     if (this.muted) return;
@@ -54,22 +54,22 @@ class WormholeSoundEngine {
       const now = this.ctx.currentTime;
 
       osc.type = "sine";
-      osc.frequency.setValueAtTime(800, now);
-      osc.frequency.exponentialRampToValueAtTime(300, now + 0.03);
+      osc.frequency.setValueAtTime(600, now);
+      osc.frequency.exponentialRampToValueAtTime(200, now + 0.02);
 
-      gain.gain.setValueAtTime(0.04, now);
-      gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.03);
+      gain.gain.setValueAtTime(0.025, now);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.02);
 
       osc.connect(gain);
       gain.connect(this.ctx.destination);
 
       osc.start(now);
-      osc.stop(now + 0.035);
+      osc.stop(now + 0.025);
     } catch (e) {}
   }
 
   /**
-   * Sci-fi warp sweep for matrix sync & recalculation
+   * Warm, subtle spacetime warp sweep
    */
   warp() {
     if (this.muted) return;
@@ -78,43 +78,35 @@ class WormholeSoundEngine {
 
     try {
       const now = this.ctx.currentTime;
-      const osc1 = this.ctx.createOscillator();
-      const osc2 = this.ctx.createOscillator();
+      const osc = this.ctx.createOscillator();
       const filter = this.ctx.createBiquadFilter();
       const gain = this.ctx.createGain();
 
       filter.type = "lowpass";
-      filter.frequency.setValueAtTime(300, now);
-      filter.frequency.exponentialRampToValueAtTime(2400, now + 0.18);
-      filter.frequency.exponentialRampToValueAtTime(600, now + 0.35);
+      filter.frequency.setValueAtTime(400, now);
+      filter.frequency.exponentialRampToValueAtTime(1200, now + 0.12);
+      filter.frequency.exponentialRampToValueAtTime(300, now + 0.22);
 
-      osc1.type = "sawtooth";
-      osc1.frequency.setValueAtTime(120, now);
-      osc1.frequency.exponentialRampToValueAtTime(480, now + 0.22);
-      osc1.frequency.exponentialRampToValueAtTime(220, now + 0.35);
-
-      osc2.type = "sine";
-      osc2.frequency.setValueAtTime(240, now);
-      osc2.frequency.exponentialRampToValueAtTime(960, now + 0.22);
+      osc.type = "sine";
+      osc.frequency.setValueAtTime(140, now);
+      osc.frequency.exponentialRampToValueAtTime(320, now + 0.12);
+      osc.frequency.exponentialRampToValueAtTime(180, now + 0.22);
 
       gain.gain.setValueAtTime(0.001, now);
-      gain.gain.linearRampToValueAtTime(0.06, now + 0.08);
-      gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.35);
+      gain.gain.linearRampToValueAtTime(0.035, now + 0.05);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.22);
 
-      osc1.connect(filter);
-      osc2.connect(filter);
+      osc.connect(filter);
       filter.connect(gain);
       gain.connect(this.ctx.destination);
 
-      osc1.start(now);
-      osc2.start(now);
-      osc1.stop(now + 0.36);
-      osc2.stop(now + 0.36);
+      osc.start(now);
+      osc.stop(now + 0.23);
     } catch (e) {}
   }
 
   /**
-   * Harmonious chord when 100% free window is surfaced
+   * Subtle pleasant resonance chord when 100% sync occurs
    */
   resonance() {
     if (this.muted) return;
@@ -123,29 +115,28 @@ class WormholeSoundEngine {
 
     try {
       const now = this.ctx.currentTime;
-      const freqs = [523.25, 659.25, 783.99, 1046.5]; // C Major arpeggio chord
+      const freqs = [440, 554.37, 659.25]; // A Major soft triad
 
       freqs.forEach((f, i) => {
         const osc = this.ctx.createOscillator();
         const gain = this.ctx.createGain();
-        const startTime = now + i * 0.04;
+        const startTime = now + i * 0.03;
 
         osc.type = "sine";
         osc.frequency.setValueAtTime(f, startTime);
 
         gain.gain.setValueAtTime(0.001, startTime);
-        gain.gain.linearRampToValueAtTime(0.03, startTime + 0.02);
-        gain.gain.exponentialRampToValueAtTime(0.0001, startTime + 0.4);
+        gain.gain.linearRampToValueAtTime(0.02, startTime + 0.02);
+        gain.gain.exponentialRampToValueAtTime(0.0001, startTime + 0.3);
 
         osc.connect(gain);
         gain.connect(this.ctx.destination);
 
         osc.start(startTime);
-        osc.stop(startTime + 0.42);
+        osc.stop(startTime + 0.32);
       });
     } catch (e) {}
   }
 }
 
-// Global Sound Instance
 window.WormholeAudio = new WormholeSoundEngine();

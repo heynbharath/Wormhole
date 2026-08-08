@@ -1,72 +1,57 @@
-# 🎨 WORMHOLE — Cosmic Design System (CDS v1.0)
+# 🎨 WORMHOLE — Minimalist Design System (MDS v2.0)
 
-A futuristic, high-contrast, cyberpunk-meets-deep-space design language crafted for fast visual parsing, tactile interactions, and immersive spatial depth.
+A refined, high-craft design language inspired by Linear, Raycast, and Cron — tailored for instant visual clarity, subtle tactile interactions, and elegant geometric spatial depth.
 
 ---
 
 ## 1. Color Tokens
 
-### 1.1 Space & Atmosphere (Surfaces)
+### 1.1 Surfaces & Obsidian Void
 ```css
---space-black:     #05070D; /* Deep singularity void */
---space-card:      #0C101D; /* Elevated glass panel */
---space-card-hover:#141B2D; /* Interactive hover elevation */
---space-border:    rgba(255, 255, 255, 0.08); /* Subtle glass contour */
---space-border-lit:rgba(0, 240, 255, 0.35);   /* Active neon contour */
+--bg-app:              #08080A; /* Deep obsidian void */
+--bg-surface:          #101014; /* Card surface */
+--bg-surface-elevated: #16161C; /* Elevated header / active element */
+--bg-surface-hover:    #1C1C24; /* Interactive hover layer */
+--bg-glass:            rgba(16, 16, 20, 0.75); /* Frosted navigation */
 ```
 
-### 1.2 Quantum Accents (Signals & Highlights)
+### 1.2 Hairline Borders
 ```css
---neon-cyan:       #00F0FF; /* Primary interactive glow & branding */
---neon-purple:     #9D00FF; /* Secondary warp & rift energy */
---quantum-green:   #00FF9D; /* 100% Free / MOOC / Sports / Office */
---amber-flare:     #FFB800; /* Flexible / Elective shift (PE-1) */
---amber-dim:       #FF8800; /* Low priority skip (CTS) */
---event-horizon:   #FF3366; /* Non-negotiable core class */
+--border-subtle:       rgba(255, 255, 255, 0.06); /* 1px ultra-fine card edge */
+--border-medium:       rgba(255, 255, 255, 0.12); /* Interactive hover border */
+--border-focus:        rgba(255, 255, 255, 0.30); /* Input focus */
 ```
 
-### 1.3 Cosmic Typography
+### 1.3 Subdued Signals (Non-Garish)
 ```css
---text-primary:    #FFFFFF; /* Stark celestial white */
---text-secondary:  #8E9BB5; /* Subdued starlight blue-grey */
---text-muted:      #4D5875; /* Background nebula tone */
-```
+--free-text:           #34D399; /* Soft Emerald · 100% Free / MOOC / Office */
+--free-bg:             rgba(52, 211, 153, 0.08);
+--free-border:         rgba(52, 211, 153, 0.22);
+--free-dot:            #10B981;
 
----
+--flex-text:           #FBBF24; /* Soft Amber · PE-1 Elective shift */
+--flex-bg:             rgba(251, 191, 36, 0.08);
+--flex-border:         rgba(251, 191, 36, 0.22);
 
-## 2. Typography Scale
-
-- **Display & Brand**: `'Syne'`, `'Space Grotesk'`, sans-serif (800, 700 weight, tight tracking).
-- **Body & Matrix Labels**: `'Inter'`, `'IBM Plex Sans'`, system-ui (400, 500, 600 weight).
-- **Time, Codes & Diagnostics**: `'JetBrains Mono'`, `'IBM Plex Mono'`, monospace (400, 600 weight).
-
----
-
-## 3. Glassmorphism & Elevation
-
-```css
-.wormhole-glass {
-  background: rgba(12, 16, 29, 0.72);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid var(--space-border);
-  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.45);
-}
-
-.wormhole-glass:hover {
-  border-color: var(--space-border-lit);
-  box-shadow: 0 12px 40px 0 rgba(0, 240, 255, 0.15);
-}
+--skip-text:           #FB923C; /* Soft Orange · CTS Low Friction */
+--skip-bg:             rgba(251, 146, 60, 0.06);
 ```
 
 ---
 
-## 4. Signal Matrix Badging
+## 2. Typography Hierarchy
 
-| Category | Background | Border | Glow Effect | Meaning |
-| :--- | :--- | :--- | :--- | :--- |
-| **QUANTUM FREE** | `rgba(0, 255, 157, 0.12)` | `rgba(0, 255, 157, 0.4)` | `0 0 12px rgba(0, 255, 157, 0.3)` | MOOC, Sports, Library, Mentor, Office |
-| **FLEX SHIFT** | `rgba(255, 184, 0, 0.12)` | `rgba(255, 184, 0, 0.4)` | `0 0 12px rgba(255, 184, 0, 0.2)` | Professional Elective I (PE-1) |
-| **LOW FRICTION** | `rgba(255, 136, 0, 0.10)` | `rgba(255, 136, 0, 0.3)` | None | Cognitive & Tech Skills (CTS) |
-| **LOCKED** | `rgba(255, 255, 255, 0.03)` | `rgba(255, 255, 255, 0.08)` | None | Core Subjects, Labs, Soft Skills |
-| **NOW ACTIVE** | `rgba(0, 240, 255, 0.25)` | `#00F0FF` | Pulsing `0 0 24px #00F0FF` | Active period based on live clock |
+- **Primary Sans**: `'Plus Jakarta Sans'`, `-apple-system`, `'Inter'`, sans-serif (Weights: 400, 500, 600, 700, 800).
+- **Metadata & Codes**: `'JetBrains Mono'`, monospace (Weights: 400, 500, 600).
+- **Tracking**: Tight letter-spacing (`letter-spacing: -0.02em` on headings, `letter-spacing: 0.04em` on mono badges).
+
+---
+
+## 3. Interactive Motion & Haptics
+
+- **Geometric Spacetime Mesh**: 60 FPS HTML5 canvas with inertial spring physics, concentric orbital rings, and radial warp vectors that bend gently to cursor coordinates.
+- **Audio Feedback**: Subtle, non-intrusive 20ms sine-burst haptic clicks and pleasant resonance triads on 100% match.
+- **Keyboard Navigation**:
+  - `1` – `4`: View switching.
+  - `A` – `L`: Section jump.
+  - `Space`: Audio mute toggle.

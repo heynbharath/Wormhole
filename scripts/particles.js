@@ -1,6 +1,6 @@
 /**
- * WORMHOLE Particle Canvas Engine
- * High-performance 60 FPS interactive gravitational singularity and accretion disk.
+ * WORMHOLE Gravitational Spacetime Mesh Engine
+ * Minimalist, elegant 60 FPS geometric wireframe and singularity accretion mesh.
  */
 
 class WormholeVortex {
@@ -8,17 +8,18 @@ class WormholeVortex {
     this.canvas = document.getElementById(canvasId);
     if (!this.canvas) return;
     this.ctx = this.canvas.getContext("2d");
-    this.particles = [];
-    this.numParticles = window.innerWidth < 768 ? 160 : 320;
     this.width = 0;
     this.height = 0;
     this.centerX = 0;
     this.centerY = 0;
-    this.targetCenterX = 0;
-    this.targetCenterY = 0;
-    this.warpSpeed = 1.0;
-    this.targetWarpSpeed = 1.0;
-    this.animationFrame = null;
+    this.targetX = 0;
+    this.targetY = 0;
+    this.gridPoints = [];
+    this.numRings = 16;
+    this.pointsPerRing = 32;
+    this.rotation = 0;
+    this.warpFactor = 1.0;
+    this.targetWarp = 1.0;
     this.isHovering = false;
 
     this.init();
@@ -28,7 +29,7 @@ class WormholeVortex {
     this.resize();
     window.addEventListener("resize", () => this.resize());
 
-    // Interactive mouse gravitation
+    // Interactive pointer gravitation
     window.addEventListener("mousemove", (e) => {
       const rect = this.canvas.getBoundingClientRect();
       if (
@@ -37,17 +38,17 @@ class WormholeVortex {
         e.clientX >= rect.left &&
         e.clientX <= rect.right
       ) {
-        this.targetCenterX = e.clientX - rect.left;
-        this.targetCenterY = e.clientY - rect.top;
+        this.targetX = e.clientX - rect.left;
+        this.targetY = e.clientY - rect.top;
         this.isHovering = true;
       } else {
         this.isHovering = false;
-        this.targetCenterX = this.width / 2;
-        this.targetCenterY = this.height / 2;
+        this.targetX = this.width / 2;
+        this.targetY = this.height / 2;
       }
     });
 
-    this.createParticles();
+    this.buildMesh();
     this.animate();
   }
 
@@ -57,95 +58,105 @@ class WormholeVortex {
     this.height = this.canvas.height = parent ? parent.offsetHeight : window.innerHeight;
     this.centerX = this.width / 2;
     this.centerY = this.height / 2;
-    this.targetCenterX = this.centerX;
-    this.targetCenterY = this.centerY;
+    this.targetX = this.centerX;
+    this.targetY = this.centerY;
   }
 
-  createParticles() {
-    this.particles = [];
-    const colors = ["#00F0FF", "#9D00FF", "#00FF9D", "#7928CA", "#FFFFFF"];
+  buildMesh() {
+    this.gridPoints = [];
+    const maxRadius = Math.max(this.width, this.height) * 0.65;
 
-    for (let i = 0; i < this.numParticles; i++) {
-      const angle = Math.random() * Math.PI * 2;
-      const radius = Math.random() * Math.max(this.width, this.height) * 0.7 + 30;
-      const speed = (0.003 + Math.random() * 0.006) * (Math.random() > 0.5 ? 1 : -1);
-      const size = Math.random() * 2 + 0.8;
-      const color = colors[Math.floor(Math.random() * colors.length)];
-      const radialSpeed = 0.2 + Math.random() * 0.5;
-
-      this.particles.push({
-        angle,
-        radius,
-        baseRadius: radius,
-        speed,
-        radialSpeed,
-        size,
-        color,
-        alpha: Math.random() * 0.8 + 0.2,
-      });
+    for (let r = 1; r <= this.numRings; r++) {
+      // Exponential spacing for realistic gravitational depth
+      const radius = Math.pow(r / this.numRings, 1.6) * maxRadius + 20;
+      const ring = [];
+      for (let i = 0; i < this.pointsPerRing; i++) {
+        const baseAngle = (i / this.pointsPerRing) * Math.PI * 2;
+        ring.push({
+          baseAngle,
+          radius,
+          baseRadius: radius,
+          phase: Math.random() * Math.PI * 2,
+        });
+      }
+      this.gridPoints.push(ring);
     }
   }
 
   triggerWarp() {
-    this.targetWarpSpeed = 4.5;
+    this.targetWarp = 3.2;
     setTimeout(() => {
-      this.targetWarpSpeed = 1.0;
-    }, 450);
+      this.targetWarp = 1.0;
+    }, 380);
   }
 
   animate() {
-    this.animationFrame = requestAnimationFrame(() => this.animate());
+    requestAnimationFrame(() => this.animate());
 
-    // Smooth camera / center interpolation
-    this.centerX += (this.targetCenterX - this.centerX) * 0.05;
-    this.centerY += (this.targetCenterY - this.centerY) * 0.05;
-    this.warpSpeed += (this.targetWarpSpeed - this.warpSpeed) * 0.1;
+    // Inertial camera interpolation
+    this.centerX += (this.targetX - this.centerX) * 0.06;
+    this.centerY += (this.targetY - this.centerY) * 0.06;
+    this.warpFactor += (this.targetWarp - this.warpFactor) * 0.08;
+    this.rotation += 0.0018 * this.warpFactor;
 
-    // Fade trail effect for cosmic motion blur
-    this.ctx.fillStyle = "rgba(5, 7, 13, 0.22)";
+    // Clear with subtle fade trail
+    this.ctx.fillStyle = "rgba(8, 8, 10, 0.28)";
     this.ctx.fillRect(0, 0, this.width, this.height);
 
-    // Singularity glow in the center
-    const gradient = this.ctx.createRadialGradient(
-      this.centerX,
-      this.centerY,
-      10,
-      this.centerX,
-      this.centerY,
-      260
-    );
-    gradient.addColorStop(0, "rgba(0, 240, 255, 0.18)");
-    gradient.addColorStop(0.3, "rgba(157, 0, 255, 0.08)");
-    gradient.addColorStop(1, "rgba(5, 7, 13, 0)");
-    this.ctx.fillStyle = gradient;
-    this.ctx.beginPath();
-    this.ctx.arc(this.centerX, this.centerY, 260, 0, Math.PI * 2);
-    this.ctx.fill();
-
-    // Render & update accretion particles
-    for (let p of this.particles) {
-      p.angle += p.speed * this.warpSpeed;
-      p.radius -= p.radialSpeed * this.warpSpeed;
-
-      // When sucked into singularity, regenerate on outer perimeter
-      if (p.radius < 18) {
-        p.radius = Math.max(this.width, this.height) * 0.65 + Math.random() * 100;
-        p.angle = Math.random() * Math.PI * 2;
-      }
-
-      const x = this.centerX + Math.cos(p.angle) * p.radius;
-      const y = this.centerY + Math.sin(p.angle) * (p.radius * 0.62); // 3D tilt perspective
-
-      this.ctx.save();
-      this.ctx.globalAlpha = p.alpha * (p.radius / (Math.max(this.width, this.height) * 0.5));
-      this.ctx.fillStyle = p.color;
-      this.ctx.shadowBlur = 8;
-      this.ctx.shadowColor = p.color;
-
+    // Render wireframe concentric rings
+    for (let r = 0; r < this.gridPoints.length; r++) {
+      const ring = this.gridPoints[r];
+      const ringProgress = r / this.gridPoints.length;
+      
       this.ctx.beginPath();
-      this.ctx.arc(x, y, p.size * (this.warpSpeed > 2 ? 1.5 : 1), 0, Math.PI * 2);
-      this.ctx.fill();
-      this.ctx.restore();
+      for (let i = 0; i < ring.length; i++) {
+        const p = ring[i];
+        const angle = p.baseAngle + this.rotation * (1 + (1 - ringProgress) * 0.8);
+        
+        // 3D perspective distortion
+        const x = this.centerX + Math.cos(angle) * p.radius;
+        const y = this.centerY + Math.sin(angle) * (p.radius * 0.45);
+
+        if (i === 0) this.ctx.moveTo(x, y);
+        else this.ctx.lineTo(x, y);
+      }
+      this.ctx.closePath();
+
+      // Subtle hairline stroke with distance attenuation
+      this.ctx.strokeStyle = `rgba(99, 102, 241, ${0.04 + ringProgress * 0.12})`;
+      this.ctx.lineWidth = 1;
+      this.ctx.stroke();
+
+      // Render nodal junction points
+      for (let i = 0; i < ring.length; i += 2) {
+        const p = ring[i];
+        const angle = p.baseAngle + this.rotation * (1 + (1 - ringProgress) * 0.8);
+        const x = this.centerX + Math.cos(angle) * p.radius;
+        const y = this.centerY + Math.sin(angle) * (p.radius * 0.45);
+
+        this.ctx.fillStyle = r === this.numRings - 1 ? "rgba(255, 255, 255, 0.4)" : "rgba(139, 92, 246, 0.35)";
+        this.ctx.beginPath();
+        this.ctx.arc(x, y, 1.2, 0, Math.PI * 2);
+        this.ctx.fill();
+      }
+    }
+
+    // Connect radial warp lines across rings
+    for (let i = 0; i < this.pointsPerRing; i += 4) {
+      this.ctx.beginPath();
+      for (let r = 0; r < this.gridPoints.length; r++) {
+        const p = this.gridPoints[r][i];
+        const ringProgress = r / this.gridPoints.length;
+        const angle = p.baseAngle + this.rotation * (1 + (1 - ringProgress) * 0.8);
+        const x = this.centerX + Math.cos(angle) * p.radius;
+        const y = this.centerY + Math.sin(angle) * (p.radius * 0.45);
+
+        if (r === 0) this.ctx.moveTo(x, y);
+        else this.ctx.lineTo(x, y);
+      }
+      this.ctx.strokeStyle = "rgba(255, 255, 255, 0.035)";
+      this.ctx.lineWidth = 1;
+      this.ctx.stroke();
     }
   }
 }

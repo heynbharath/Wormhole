@@ -1,9 +1,8 @@
 /**
- * WORMHOLE Core Engine
- * Algorithms, Live Clock Radar, Rendering Pipeline & Calendar Exporter.
+ * WORMHOLE Minimalist Engine
+ * Spacetime Overlap Analytics, Live Radar, Keyboard Shortcuts & ICS Sync.
  */
 
-// Categorization Tiers
 function categorizePeriod(label) {
   if (!label) return "fixed";
   const s = label.toUpperCase();
@@ -22,7 +21,6 @@ class WormholeApp {
     this.currentSection = "H";
     this.secA = "H";
     this.secB = "L";
-    this.activeFilter = "all";
     this.searchQuery = "";
     this.vortex = null;
 
@@ -30,7 +28,7 @@ class WormholeApp {
   }
 
   init() {
-    // Initialize canvas vortex
+    // Initialize wireframe canvas
     this.vortex = new WormholeVortex("vortexCanvas");
 
     // Build controls & views
@@ -39,9 +37,10 @@ class WormholeApp {
     this.initNavigation();
     this.initAudioToggle();
     this.initSearch();
+    this.initKeyboardShortcuts();
     this.initICSExporter();
 
-    // Render initial views
+    // Render views
     this.renderChronosGrid();
     this.renderTheRift();
     this.renderElectives();
@@ -50,9 +49,43 @@ class WormholeApp {
     this.startLiveRadar();
   }
 
+  /* ===================== KEYBOARD NAVIGATION ===================== */
+  initKeyboardShortcuts() {
+    window.addEventListener("keydown", (e) => {
+      // Don't trigger if typing in search input
+      if (e.target.tagName === "INPUT" || e.target.tagName === "SELECT") return;
+
+      const key = e.key.toUpperCase();
+
+      // Number keys 1-4 switch tabs
+      if (["1", "2", "3", "4"].includes(key)) {
+        const views = ["rift", "chronos", "electives", "docs"];
+        const btn = document.querySelector(`[data-view="${views[Number(key) - 1]}"]`);
+        if (btn) btn.click();
+      }
+
+      // Letter keys A-L switch sections
+      if (Object.keys(SECTIONS).includes(key)) {
+        WormholeAudio.tick();
+        this.currentSection = key;
+        this.buildSectionPigeonholes();
+        this.renderChronosGrid();
+        const chronosTab = document.querySelector('[data-view="chronos"]');
+        if (chronosTab) chronosTab.click();
+      }
+
+      // Space key toggles audio
+      if (e.code === "Space") {
+        e.preventDefault();
+        const btn = document.getElementById("audioToggleBtn");
+        if (btn) btn.click();
+      }
+    });
+  }
+
   /* ===================== NAVIGATION ===================== */
   initNavigation() {
-    const tabs = document.querySelectorAll(".tab-btn");
+    const tabs = document.querySelectorAll(".seg-btn");
     tabs.forEach((tab) => {
       tab.addEventListener("click", () => {
         WormholeAudio.tick();
@@ -73,8 +106,7 @@ class WormholeApp {
 
     const updateBtn = () => {
       const isMuted = WormholeAudio.isMuted();
-      btn.classList.toggle("muted", isMuted);
-      btn.innerHTML = isMuted ? `🔇 Audio Off` : `🔊 Audio On`;
+      btn.innerHTML = isMuted ? `🔇 Muted` : `🔊 Audio`;
     };
 
     updateBtn();
@@ -97,9 +129,8 @@ class WormholeApp {
       const seconds = String(now.getSeconds()).padStart(2, "0");
       if (clockEl) clockEl.textContent = `${hours}:${minutes}:${seconds}`;
 
-      // Check active day (0 = Sunday, 1 = Monday, ..., 6 = Saturday)
       const dayIndex = now.getDay();
-      const currentDayName = DAYS[dayIndex - 1]; // Monday is index 0 in DAYS
+      const currentDayName = DAYS[dayIndex - 1];
 
       let activePeriod = null;
       const currentTotalMin = now.getHours() * 60 + now.getMinutes();
@@ -117,25 +148,25 @@ class WormholeApp {
 
       if (statusEl) {
         if (dayIndex === 0) {
-          statusEl.textContent = "Sunday · Campus Dormant";
+          statusEl.textContent = "Sunday · Off Grid";
         } else if (activePeriod) {
-          statusEl.textContent = `Live: ${activePeriod.label} (${activePeriod.displayStart} – ${activePeriod.displayEnd})`;
+          statusEl.textContent = `Period ${activePeriod.id + 1} Active (${activePeriod.displayStart} – ${activePeriod.displayEnd})`;
         } else if (currentTotalMin >= 10 * 60 + 20 && currentTotalMin < 10 * 60 + 45) {
-          statusEl.textContent = "Live: Short Break Interval";
+          statusEl.textContent = "Short Break Interval";
         } else if (currentTotalMin >= 12 * 60 + 35 && currentTotalMin < 13 * 60 + 50) {
-          statusEl.textContent = "Live: Lunch Interval Overlap";
+          statusEl.textContent = "Lunch Interval";
         } else {
-          statusEl.textContent = "Outside Academic Hours";
+          statusEl.textContent = "Campus Dormant";
         }
       }
 
       // Highlight active cell in current section view
-      document.querySelectorAll(".cell-quantum").forEach((c) => c.classList.remove("now-active"));
+      document.querySelectorAll(".cell-slot").forEach((c) => c.classList.remove("active-period"));
       if (currentDayName && activePeriod !== null) {
         const activeCell = document.querySelector(
           `[data-day="${currentDayName}"][data-period="${activePeriod.id}"]`
         );
-        if (activeCell) activeCell.classList.add("now-active");
+        if (activeCell) activeCell.classList.add("active-period");
       }
     };
 
@@ -143,7 +174,7 @@ class WormholeApp {
     setInterval(tickClock, 1000);
   }
 
-  /* ===================== SECTION VIEW (CHRONOS GRID) ===================== */
+  /* ===================== CHRONOS MATRIX (Single Section) ===================== */
   buildSectionPigeonholes() {
     const container = document.getElementById("sectionPigeonholes");
     if (!container) return;
@@ -151,16 +182,16 @@ class WormholeApp {
 
     Object.keys(SECTIONS).forEach((secKey) => {
       const secData = SECTIONS[secKey];
-      const tag = document.createElement("div");
-      tag.className = "pigeon-tag" + (secKey === this.currentSection ? " active" : "");
-      tag.innerHTML = `5${secKey} <small>${secData.room.split(",")[0].trim()}</small>`;
-      tag.addEventListener("click", () => {
+      const pill = document.createElement("div");
+      pill.className = "sec-pill" + (secKey === this.currentSection ? " active" : "");
+      pill.innerHTML = `<span>5${secKey}</span> <small>${secData.room.split(",")[0].trim()}</small>`;
+      pill.addEventListener("click", () => {
         WormholeAudio.tick();
         this.currentSection = secKey;
         this.buildSectionPigeonholes();
         this.renderChronosGrid();
       });
-      container.appendChild(tag);
+      container.appendChild(pill);
     });
   }
 
@@ -170,9 +201,9 @@ class WormholeApp {
     const metaEl = document.getElementById("chronosSectionMeta");
     const tableEl = document.getElementById("chronosTimetable");
 
-    if (titleEl) titleEl.textContent = `Section 5${this.currentSection} Timetable`;
+    if (titleEl) titleEl.textContent = `Section 5${this.currentSection}`;
     if (metaEl) {
-      metaEl.innerHTML = `Advisor: <b style="color:var(--neon-cyan);">${secData.advisor}</b> &nbsp;·&nbsp; Primary Room: <b style="color:var(--text-primary);">${secData.room}</b>`;
+      metaEl.innerHTML = `Advisor: <span style="color:var(--text-main); font-weight:500;">${secData.advisor}</span> · Primary Room: <span style="color:var(--text-main); font-weight:500;">${secData.room}</span>`;
     }
 
     if (tableEl) {
@@ -200,19 +231,19 @@ class WormholeApp {
     filtered.forEach((c) => {
       const tr = document.createElement("tr");
       tr.innerHTML = `
-        <td class="code-cell">${c.code}</td>
-        <td style="font-weight:600; color:var(--text-primary);">${c.name}</td>
+        <td class="mono-code">${c.code}</td>
+        <td style="font-weight:500; color:var(--text-main);">${c.name}</td>
         <td>${c.faculty}</td>
       `;
       tbody.appendChild(tr);
 
       (c.labs || []).forEach((l) => {
         const labTr = document.createElement("tr");
-        labTr.className = "lab-row";
+        labTr.style.background = "rgba(255, 255, 255, 0.015)";
         labTr.innerHTML = `
-          <td class="code-cell" style="padding-left:26px;">${l.tag}</td>
-          <td style="color:var(--neon-purple); font-style:italic;">Practical Lab Division</td>
-          <td>${l.faculty}</td>
+          <td class="mono-code" style="padding-left:24px; color:var(--accent-violet);">${l.tag}</td>
+          <td style="color:var(--text-dim); font-size:12px;">Practical Lab Division</td>
+          <td style="font-size:12px;">${l.faculty}</td>
         `;
         tbody.appendChild(labTr);
       });
@@ -229,7 +260,7 @@ class WormholeApp {
     }
   }
 
-  /* ===================== THE RIFT (SYNC ENGINE) ===================== */
+  /* ===================== THE RIFT (Dual Overlap) ===================== */
   buildRiftSelectors() {
     const selectA = document.getElementById("riftSecA");
     const selectB = document.getElementById("riftSecB");
@@ -269,13 +300,11 @@ class WormholeApp {
     const A = { key: this.secA, data: SECTIONS[this.secA] };
     const B = { key: this.secB, data: SECTIONS[this.secB] };
 
-    const heading = document.getElementById("riftHeading");
-    if (heading) {
-      heading.textContent = `Class-Time Overlaps: 5${this.secA} × 5${this.secB}`;
-    }
-
-    // Compute overlapping contiguous windows
+    // Compute overlapping contiguous windows & calculate sync score
     const windows = [];
+    let totalFreeOrFlexSlots = 0;
+    const totalSlots = 6 * 7; // 42 slots in a week
+
     DAYS.forEach((day) => {
       let i = 0;
       while (i < 7) {
@@ -284,13 +313,16 @@ class WormholeApp {
         const score = Math.min(CAT_LEVELS[categorizePeriod(la)], CAT_LEVELS[categorizePeriod(lb)]);
 
         if (score > 0) {
+          totalFreeOrFlexSlots++;
           let j = i;
           while (j + 1 < 7) {
             const la2 = A.data.days[day][j + 1];
             const lb2 = B.data.days[day][j + 1];
             const s2 = Math.min(CAT_LEVELS[categorizePeriod(la2)], CAT_LEVELS[categorizePeriod(lb2)]);
-            if (s2 === score) j++;
-            else break;
+            if (s2 === score) {
+              totalFreeOrFlexSlots++;
+              j++;
+            } else break;
           }
           windows.push({ day, start: i, end: j, score });
           i = j + 1;
@@ -300,7 +332,13 @@ class WormholeApp {
       }
     });
 
-    // Sort by priority tier, then duration
+    // Sync score percentage (including breaks)
+    const syncPercentage = Math.min(96, Math.round(55 + (totalFreeOrFlexSlots / 14) * 40));
+    const scoreBadge = document.getElementById("riftSyncScore");
+    if (scoreBadge) {
+      scoreBadge.textContent = `${syncPercentage}% Spacetime Alignment`;
+    }
+
     windows.sort((x, y) => y.score - x.score || y.end - y.start - (x.end - x.start));
 
     const rankList = document.getElementById("riftRankList");
@@ -308,8 +346,8 @@ class WormholeApp {
       rankList.innerHTML = "";
       if (windows.length === 0) {
         rankList.innerHTML = `
-          <li class="wormhole-glass rank-card" style="justify-content:center; color:var(--text-secondary);">
-            No direct class-time overlaps detected this week — leverage the guaranteed daily breaks above!
+          <li class="card-minimal rank-item" style="justify-content:center; color:var(--text-dim); padding:18px;">
+            No direct class-time overlaps — make use of the guaranteed morning & lunch breaks.
           </li>
         `;
       } else {
@@ -319,36 +357,35 @@ class WormholeApp {
 
         windows.forEach((w, idx) => {
           const li = document.createElement("li");
-          li.className = "wormhole-glass rank-card";
+          li.className = "card-minimal rank-item";
           const startT = PERIODS[w.start].displayStart;
           const endT = PERIODS[w.end].displayEnd;
           const tierClass = `tier-${w.score}`;
           const scoreLabel =
             w.score === 3
-              ? "100% Quantum Free"
+              ? "Both Free (MOOC / Office)"
               : w.score === 2
-              ? "Dual Flexible Shift"
-              : "Low Friction Skip";
+              ? "PE-1 Elective Overlap"
+              : "CTS Low Friction";
 
           const reason =
             w.score === 3
-              ? `5${this.secA}: ${A.data.days[w.day][w.start]} &nbsp;·&nbsp; 5${this.secB}: ${B.data.days[w.day][w.start]}`
-              : `5${this.secA}: ${A.data.days[w.day].slice(w.start, w.end + 1).join(" → ")} &nbsp;·&nbsp; 5${this.secB}: ${B.data.days[w.day].slice(w.start, w.end + 1).join(" → ")}`;
+              ? `5${this.secA}: ${A.data.days[w.day][w.start]} · 5${this.secB}: ${B.data.days[w.day][w.start]}`
+              : `5${this.secA}: ${A.data.days[w.day].slice(w.start, w.end + 1).join(" → ")} · 5${this.secB}: ${B.data.days[w.day].slice(w.start, w.end + 1).join(" → ")}`;
 
           li.innerHTML = `
-            <div class="rank-index">${idx + 1}</div>
-            <div class="rank-details">
-              <div class="rank-time">${w.day}, ${startT} – ${endT}</div>
-              <div class="rank-reason">${reason}</div>
+            <div class="rank-num">0${idx + 1}</div>
+            <div class="rank-main">
+              <div class="rank-header">${w.day}, ${startT} – ${endT}</div>
+              <div class="rank-sub">${reason}</div>
             </div>
-            <div class="rank-pill ${tierClass}">${scoreLabel}</div>
+            <div class="tier-pill ${tierClass}">${scoreLabel}</div>
           `;
           rankList.appendChild(li);
         });
       }
     }
 
-    // Render Overlay Matrix Table
     const tableEl = document.getElementById("riftOverlayTable");
     if (tableEl) {
       tableEl.innerHTML = this.generateGridHTML([A, B], true);
@@ -365,27 +402,27 @@ class WormholeApp {
       e.rows.forEach((r, idx) => {
         const tr = document.createElement("tr");
         tr.innerHTML = `
-          <td class="code-cell">${idx === 0 ? e.no : ""}</td>
-          <td style="font-weight:600; color:var(--text-primary);">${idx === 0 ? e.name : ""}</td>
+          <td class="mono-code">${idx === 0 ? `Track 0${e.no}` : ""}</td>
+          <td style="font-weight:500; color:var(--text-main);">${idx === 0 ? e.name : ""}</td>
           <td>${r[0]}</td>
-          <td style="font-family:var(--font-mono); color:var(--neon-cyan); font-weight:700;">${r[1]}</td>
+          <td class="mono-code" style="color:var(--text-main); font-weight:600;">${r[1]}</td>
         `;
         tbody.appendChild(tr);
       });
     });
   }
 
-  /* ===================== GRID GENERATOR (Single & Dual Overlay) ===================== */
+  /* ===================== GRID GENERATOR ===================== */
   generateGridHTML(sectionsArr, isOverlay) {
-    let html = "<thead><tr><th class='day-col'>Day</th>";
+    let html = "<thead><tr><th class='day-cell'>Day</th>";
     PERIODS.forEach((p, i) => {
-      html += `<th>${p.label}<span class="period-time">${p.displayStart} – ${p.displayEnd}</span></th>`;
-      if (i === 1 || i === 3) html += `<th class="break-col"></th>`;
+      html += `<th>${p.label}<span class="th-time">${p.displayStart} – ${p.displayEnd}</span></th>`;
+      if (i === 1 || i === 3) html += `<th class="break-cell"></th>`;
     });
     html += "</tr></thead><tbody>";
 
     DAYS.forEach((day) => {
-      html += `<tr><td class="day-col">${day}</td>`;
+      html += `<tr><td class="day-cell">${day.substring(0, 3)}</td>`;
       for (let i = 0; i < 7; i++) {
         if (isOverlay) {
           const [a, b] = sectionsArr;
@@ -401,17 +438,17 @@ class WormholeApp {
               ? "cat-skiphigh"
               : score === 1
               ? "cat-skiplow"
-              : "cat-fixed";
+              : "";
 
           const badge =
             score > 0
-              ? `<span class="cell-badge">${score === 3 ? "BOTH FREE" : score === 2 ? "FLEX OVERLAP" : "SKIP LOW"}</span>`
+              ? `<span class="cell-tag">${score === 3 ? "BOTH FREE" : score === 2 ? "FLEX" : "SKIP"}</span>`
               : "";
 
           html += `
-            <td class="cell-quantum ${cls}">
-              <div class="cell-subject-lbl"><span style="color:var(--neon-cyan);">5${a.key}:</span> ${la}</div>
-              <div class="cell-subject-lbl" style="margin-top:4px;"><span style="color:var(--neon-purple);">5${b.key}:</span> ${lb}</div>
+            <td class="cell-slot ${cls}">
+              <div class="cell-name"><span style="color:var(--text-dim); font-size:11px;">5${a.key}:</span> ${la}</div>
+              <div class="cell-name" style="margin-top:2px;"><span style="color:var(--text-dim); font-size:11px;">5${b.key}:</span> ${lb}</div>
               ${badge}
             </td>
           `;
@@ -419,18 +456,18 @@ class WormholeApp {
           const label = sectionsArr[0].data.days[day][i];
           const cat = categorizePeriod(label);
           const badge = CAT_LABELS[cat]
-            ? `<span class="cell-badge">${CAT_LABELS[cat]}</span>`
+            ? `<span class="cell-tag">${CAT_LABELS[cat]}</span>`
             : "";
 
           html += `
-            <td class="cell-quantum cat-${cat}" data-day="${day}" data-period="${i}">
-              <div class="cell-subject-lbl">${label}</div>
+            <td class="cell-slot cat-${cat}" data-day="${day}" data-period="${i}">
+              <div class="cell-name">${label}</div>
               ${badge}
             </td>
           `;
         }
 
-        if (i === 1 || i === 3) html += `<td class="break-col"></td>`;
+        if (i === 1 || i === 3) html += `<td class="break-cell"></td>`;
       }
       html += "</tr>";
     });
@@ -439,7 +476,7 @@ class WormholeApp {
     return html;
   }
 
-  /* ===================== ICS CALENDAR EXPORTER ===================== */
+  /* ===================== ICS EXPORTER ===================== */
   initICSExporter() {
     const exportBtn = document.getElementById("exportIcsBtn");
     if (!exportBtn) return;
@@ -457,9 +494,7 @@ class WormholeApp {
         "X-WR-TIMEZONE:Asia/Kolkata",
       ];
 
-      // Generate recurring events for the semester
       DAYS.forEach((day, dayIndex) => {
-        // Map day name to day of week
         const dayMap = ["MO", "TU", "WE", "TH", "FR", "SA"];
         const byDay = dayMap[dayIndex];
 
@@ -470,7 +505,6 @@ class WormholeApp {
           const [sh, sm] = p.start.split(":");
           const [eh, em] = p.end.split(":");
 
-          // Create base ISO timestamp (e.g. 20260810T083000)
           const baseDateStr = `2026081${0 + dayIndex}`;
           const dtStart = `${baseDateStr}T${sh}${sm}00`;
           const dtEnd = `${baseDateStr}T${eh}${em}00`;
@@ -503,7 +537,6 @@ class WormholeApp {
   }
 }
 
-// Instantiate on DOM ready
 document.addEventListener("DOMContentLoaded", () => {
   window.Wormhole = new WormholeApp();
 });

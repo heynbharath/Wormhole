@@ -3,282 +3,254 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>WORMHOLE — Spacetime Schedule Intersection Engine</title>
-  <meta name="description" content="Bend spacetime. Find the overlap. High-velocity campus schedule alignment engine for Dayananda Sagar University CSE Sem 5.">
+  <title>Wormhole — Minimal Spacetime Alignment Engine</title>
+  <meta name="description" content="Minimalist, high-velocity campus schedule alignment engine for Dayananda Sagar University CSE Sem 5.">
   <link rel="stylesheet" href="styles/theme.css">
   <link rel="stylesheet" href="styles/components.css">
 </head>
 <body>
 
-  <!-- Top Cosmic Navigation -->
-  <header class="cosmic-nav">
-    <div class="container nav-wrapper">
-      <a href="#" class="brand-logo">
-        <span>🌌 WORMHOLE</span>
-        <span class="brand-badge">DSU CSE V3.0</span>
+  <!-- Top Minimalist Navigation -->
+  <header class="app-nav">
+    <div class="container nav-layout">
+      <a href="#" class="brand-wrap">
+        <div class="brand-icon">⌘</div>
+        <span>Wormhole</span>
+        <span class="badge-version">v3.0 · DSU</span>
       </a>
 
-      <div class="nav-actions">
-        <div class="live-clock-pill">
-          <span class="live-indicator-dot"></span>
+      <div class="nav-controls">
+        <div class="status-pill">
+          <span class="status-dot"></span>
           <span id="liveClockTime">--:--:--</span>
-          <span style="color:var(--text-muted);">|</span>
-          <span id="livePeriodStatus" style="color:var(--neon-cyan);">Synchronizing...</span>
+          <span style="opacity:0.3;">/</span>
+          <span id="livePeriodStatus" style="color:var(--text-main); font-weight:500;">Syncing...</span>
         </div>
 
-        <button id="audioToggleBtn" class="sound-toggle-btn" title="Toggle Tactical Audio Feedback">
-          🔊 Audio On
+        <button id="audioToggleBtn" class="nav-btn" title="Press Space to Toggle Audio">
+          🔊 Audio <span class="kbd-badge">Space</span>
         </button>
       </div>
     </div>
   </header>
 
-  <!-- Hero Section with Canvas Particle Vortex -->
-  <section class="hero-container">
+  <!-- Minimalist Hero Section with Spacetime Mesh Canvas -->
+  <section class="hero-wrapper">
     <canvas id="vortexCanvas"></canvas>
 
-    <div class="hero-content">
-      <span class="hero-tag">⚡ Autonomous Spacetime Alignment</span>
+    <div class="hero-body">
+      <div class="hero-badge">
+        <span>●</span> Dayananda Sagar University · CSE Sem 5
+      </div>
       <h1 class="hero-title">Bend Spacetime.<br>Find the Overlap.</h1>
-      <p class="hero-subtitle">
-        Instant zero-friction cross-section schedule intersections for Dayananda Sagar University.
-        Office hours are 100% free. Overlaps ranked in milliseconds.
+      <p class="hero-sub">
+        Zero-friction schedule intersection engine. Office hours are 100% free.<br>
+        Instant cross-section alignment across all 12 batches.
       </p>
 
-      <div class="hero-cta-row">
-        <button class="btn-primary" onclick="document.querySelector('[data-view=\'rift\']').click(); window.scrollTo({top: 480, behavior: 'smooth'});">
-          Enter The Rift →
+      <div style="display:flex; align-items:center; justify-content:center; gap:10px;">
+        <button class="btn-solid" onclick="document.querySelector('[data-view=\'rift\']').click(); window.scrollTo({top: 360, behavior: 'smooth'});">
+          Open The Rift →
         </button>
-        <button class="btn-secondary" onclick="document.querySelector('[data-view=\'chronos\']').click(); window.scrollTo({top: 480, behavior: 'smooth'});">
-          Explore Chronos Matrix
+        <button class="btn-outline" onclick="document.querySelector('[data-view=\'chronos\']').click(); window.scrollTo({top: 360, behavior: 'smooth'});">
+          View Timetable
         </button>
       </div>
     </div>
   </section>
 
-  <!-- Main Application Workspace -->
+  <!-- Main Workspace -->
   <main class="container">
 
-    <!-- Global Key Metrics Ticker -->
-    <div class="stats-bar">
-      <div class="wormhole-glass stat-item">
-        <div class="stat-val highlight-green">100% FREE</div>
-        <div class="stat-label">Office & MOOC Matrix</div>
+    <!-- Segmented Control View Switcher -->
+    <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px; margin-bottom:20px;">
+      <div class="segmented-nav">
+        <button class="seg-btn active" data-view="rift">The Rift <span class="kbd-badge">1</span></button>
+        <button class="seg-btn" data-view="chronos">Chronos Grid <span class="kbd-badge">2</span></button>
+        <button class="seg-btn" data-view="electives">PE-1 Electives <span class="kbd-badge">3</span></button>
+        <button class="seg-btn" data-view="docs">Engineering Specs <span class="kbd-badge">4</span></button>
       </div>
-      <div class="wormhole-glass stat-item">
-        <div class="stat-val highlight-cyan">12 BATCHES</div>
-        <div class="stat-label">Sections 5A through 5L</div>
-      </div>
-      <div class="wormhole-glass stat-item">
-        <div class="stat-val highlight-amber">&lt; 50ms</div>
-        <div class="stat-label">Spacetime Intersect Time</div>
-      </div>
-      <div class="wormhole-glass stat-item">
-        <div class="stat-val">ODD 2026–27</div>
-        <div class="stat-label">DSU CSE Semester 5</div>
+
+      <div style="font-family:var(--font-mono); font-size:11px; color:var(--text-dim);">
+        Shortcut: Press <span class="kbd-badge">A</span>–<span class="kbd-badge">L</span> to switch section
       </div>
     </div>
 
-    <!-- App Views Tab Navigation -->
-    <div class="app-tabs">
-      <button class="tab-btn active" data-view="rift">🌀 The Rift (Compare 2 Sections)</button>
-      <button class="tab-btn" data-view="chronos">🗓️ Chronos Matrix (Single Section)</button>
-      <button class="tab-btn" data-view="electives">🔮 Quantum Electives (PE-1)</button>
-      <button class="tab-btn" data-view="docs">📜 Engineering Specs & Docs</button>
-    </div>
-
-    <!-- VIEW 1: THE RIFT (Dual-Section Overlap Engine) -->
+    <!-- VIEW 1: THE RIFT (Dual Overlap Comparison) -->
     <section id="panel-rift" class="view-panel active">
-      <div class="wormhole-glass rift-controls">
-        <div class="rift-select-group">
-          <label for="riftSecA">Your Primary Section</label>
-          <select id="riftSecA" class="rift-select"></select>
+      <div class="card-minimal rift-header-card">
+        <div class="rift-pickers">
+          <div>
+            <div style="font-family:var(--font-mono); font-size:11px; color:var(--text-dim); margin-bottom:4px;">Primary Section</div>
+            <select id="riftSecA" class="select-minimal"></select>
+          </div>
+
+          <div style="color:var(--text-dim); font-size:13px; font-weight:600; padding:0 4px;">&times;</div>
+
+          <div>
+            <div style="font-family:var(--font-mono); font-size:11px; color:var(--text-dim); margin-bottom:4px;">Compare With</div>
+            <select id="riftSecB" class="select-minimal"></select>
+          </div>
         </div>
 
-        <div class="rift-versus">⚡ VS ⚡</div>
-
-        <div class="rift-select-group">
-          <label for="riftSecB">Target Friend's Section</label>
-          <select id="riftSecB" class="rift-select"></select>
-        </div>
-      </div>
-
-      <!-- Guaranteed Daily Overlap Anchors -->
-      <h3 style="font-family:var(--font-heading); margin-top:20px; color:var(--text-primary);">
-        ⚓ Daily Guaranteed Universal Anchors (All 12 Sections)
-      </h3>
-      <div class="daily-anchors-grid">
-        <div class="wormhole-glass anchor-card">
-          <div class="anchor-k">Daily Morning Interval</div>
-          <div class="anchor-v">10:20 AM – 10:45 AM</div>
-          <div class="anchor-d">25 min campus-wide guaranteed short break</div>
-        </div>
-        <div class="wormhole-glass anchor-card">
-          <div class="anchor-k">Daily Midday Nexus</div>
-          <div class="anchor-v">12:35 PM – 01:50 PM</div>
-          <div class="anchor-d">75 min universal campus lunch interval</div>
-        </div>
-        <div class="wormhole-glass anchor-card">
-          <div class="anchor-k">Saturday Terminal Horizon</div>
-          <div class="anchor-v">10:45 AM – 04:20 PM</div>
-          <div class="anchor-d">Full afternoon reserved exclusively for Soft Skills</div>
+        <div id="riftSyncScore" class="sync-score-badge">
+          Calculating alignment...
         </div>
       </div>
 
-      <!-- Dynamic Ranked Overlaps -->
-      <div style="display:flex; align-items:center; justify-content:space-between; margin-top:30px; flex-wrap:wrap; gap:12px;">
-        <h3 id="riftHeading" style="font-family:var(--font-heading); color:var(--text-primary);">
-          Class-Time Overlaps
-        </h3>
-        <span style="font-family:var(--font-mono); font-size:12px; color:var(--text-muted);">
-          Ranked by Priority & Contiguous Duration
-        </span>
+      <!-- Universal Campus Anchors -->
+      <div class="anchors-strip">
+        <div class="card-minimal anchor-box">
+          <div class="anchor-tag">Daily Morning Break</div>
+          <div class="anchor-time">10:20 AM – 10:45 AM</div>
+          <div class="anchor-desc">25 min guaranteed short interval across all batches</div>
+        </div>
+        <div class="card-minimal anchor-box">
+          <div class="anchor-tag">Midday Lunch Nexus</div>
+          <div class="anchor-time">12:35 PM – 01:50 PM</div>
+          <div class="anchor-desc">75 min universal campus lunch overlap</div>
+        </div>
+        <div class="card-minimal anchor-box">
+          <div class="anchor-tag">Saturday Horizon</div>
+          <div class="anchor-time">10:45 AM – 04:20 PM</div>
+          <div class="anchor-desc">Full afternoon allocated for Soft Skills</div>
+        </div>
       </div>
 
-      <ul id="riftRankList" class="rank-list"></ul>
+      <!-- Ranked Overlaps Feed -->
+      <div style="display:flex; align-items:center; justify-content:space-between; margin-top:24px;">
+        <h3 style="font-size:15px; font-weight:600; color:var(--text-main);">Ranked Overlap Windows</h3>
+        <span style="font-family:var(--font-mono); font-size:11.5px; color:var(--text-dim);">Sorted by quality & duration</span>
+      </div>
 
-      <!-- Dual Section Overlay Matrix -->
-      <h3 style="font-family:var(--font-heading); color:var(--text-primary); margin-top:30px;">
-        Combined Spacetime Matrix Grid
-      </h3>
-      <div class="grid-wrapper">
-        <table id="riftOverlayTable" class="tt-matrix"></table>
+      <ul id="riftRankList" class="rank-feed"></ul>
+
+      <!-- Dual Overlap Matrix -->
+      <div style="display:flex; align-items:center; justify-content:space-between; margin-top:28px;">
+        <h3 style="font-size:15px; font-weight:600; color:var(--text-main);">Split Spacetime Matrix</h3>
+      </div>
+      <div class="matrix-container">
+        <table id="riftOverlayTable" class="matrix-table"></table>
       </div>
     </section>
 
-    <!-- VIEW 2: CHRONOS MATRIX (Single Section Full Schedule) -->
+    <!-- VIEW 2: CHRONOS MATRIX (Single Section) -->
     <section id="panel-chronos" class="view-panel">
-      
-      <!-- Section Selection Pigeonholes -->
-      <div class="pigeonholes-container">
-        <div class="pigeonholes-label">Select Active Section (A through L)</div>
-        <div id="sectionPigeonholes" class="pigeonholes"></div>
-      </div>
+      <!-- Section Selector -->
+      <div class="section-strip" id="sectionPigeonholes"></div>
 
-      <!-- Section Title & Meta Header -->
-      <div class="wormhole-glass" style="padding:20px 24px; margin-bottom:20px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:16px;">
+      <!-- Header Card with ICS Export -->
+      <div class="card-minimal" style="padding:16px 20px; margin-bottom:16px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px;">
         <div>
-          <h2 id="chronosSectionTitle" style="font-family:var(--font-display); font-size:24px; color:var(--text-primary);">
-            Section 5H Timetable
-          </h2>
-          <p id="chronosSectionMeta" style="font-size:13.5px; color:var(--text-secondary); margin-top:4px;"></p>
+          <h2 id="chronosSectionTitle" style="font-size:18px; font-weight:700; color:var(--text-main);">Section 5H</h2>
+          <p id="chronosSectionMeta" style="font-size:12.5px; color:var(--text-muted); margin-top:2px;"></p>
         </div>
 
-        <button id="exportIcsBtn" class="btn-secondary" style="display:inline-flex; align-items:center; gap:8px;">
-          📅 Export to Calendar (.ICS)
+        <button id="exportIcsBtn" class="btn-outline" style="font-size:12.5px; padding:6px 14px;">
+          📅 Add to Calendar (.ICS)
         </button>
       </div>
 
-      <!-- Global Visual Legend -->
-      <div class="wormhole-glass legend-strip">
-        <div class="legend-item">
-          <span class="legend-swatch" style="background:var(--free); box-shadow:0 0 8px var(--free);"></span>
+      <!-- Clean Minimal Legend -->
+      <div class="card-minimal legend-bar">
+        <div class="legend-unit">
+          <span class="legend-point" style="background:var(--free-dot);"></span>
           <span>100% Free (Office, MOOC, Sports, Library, Mentor)</span>
         </div>
-        <div class="legend-item">
-          <span class="legend-swatch" style="background:var(--skiphigh);"></span>
+        <div class="legend-unit">
+          <span class="legend-point" style="background:var(--flex-dot);"></span>
           <span>Flex Elective Shift (PE-1)</span>
         </div>
-        <div class="legend-item">
-          <span class="legend-swatch" style="background:var(--skiplow);"></span>
+        <div class="legend-unit">
+          <span class="legend-point" style="background:var(--skip-dot);"></span>
           <span>Low Friction Skip (CTS)</span>
         </div>
-        <div class="legend-item">
-          <span class="legend-swatch" style="background:rgba(255,255,255,0.1);"></span>
-          <span>Locked Core Subject / Lab</span>
+        <div class="legend-unit">
+          <span class="legend-point" style="background:rgba(255,255,255,0.15);"></span>
+          <span>Core Subject / Lab</span>
         </div>
       </div>
 
-      <!-- Single Section Grid Table -->
-      <div class="grid-wrapper">
-        <table id="chronosTimetable" class="tt-matrix"></table>
+      <!-- Matrix Grid -->
+      <div class="matrix-container">
+        <table id="chronosTimetable" class="matrix-table"></table>
       </div>
 
-      <!-- Course & Faculty Directory for Section -->
-      <div class="directory-section">
-        <div class="directory-header">
-          <h3 style="font-family:var(--font-heading); color:var(--text-primary);">
-            Faculty & Course Allocation Directory
-          </h3>
-          <input type="text" id="facultySearchInput" class="search-input" placeholder="🔍 Search course, faculty, or lab...">
+      <!-- Course & Faculty Directory -->
+      <div class="directory-wrap">
+        <div class="dir-header">
+          <h3 style="font-size:15px; font-weight:600; color:var(--text-main);">Faculty & Course Allocation</h3>
+          <input type="text" id="facultySearchInput" class="input-minimal" placeholder="Filter courses or faculty...">
         </div>
 
-        <div style="overflow-x:auto; border-radius:var(--radius-md); border:1px solid var(--space-border);">
-          <table class="directory-table">
-            <thead>
-              <tr>
-                <th style="width:140px;">Course Code</th>
-                <th>Course Name</th>
-                <th>Faculty In-Charge & Lab Instructors</th>
-              </tr>
-            </thead>
-            <tbody id="directoryTableBody"></tbody>
-          </table>
-        </div>
-      </div>
-    </section>
-
-    <!-- VIEW 3: QUANTUM ELECTIVES (PE-1 Directory) -->
-    <section id="panel-electives" class="view-panel">
-      <div class="wormhole-glass" style="padding:24px; margin-bottom:24px;">
-        <h2 style="font-family:var(--font-display); font-size:24px; color:var(--text-primary);">
-          Professional Electives (PE-1) Global Directory
-        </h2>
-        <p style="font-size:14px; color:var(--text-secondary); margin-top:6px;">
-          All 4 professional elective tracks are scheduled synchronously across all 12 sections on
-          <b style="color:var(--neon-cyan);">Tuesday 7th Period</b> & <b style="color:var(--neon-cyan);">Thursday 5th & 6th Periods</b>.
-        </p>
-      </div>
-
-      <div style="overflow-x:auto; border-radius:var(--radius-md); border:1px solid var(--space-border);">
-        <table class="directory-table">
+        <table class="dir-table">
           <thead>
             <tr>
-              <th style="width:80px;">Track #</th>
-              <th>Elective Course Name</th>
-              <th>Assigned Faculty</th>
-              <th style="width:120px;">Room / Lab</th>
+              <th style="width:130px;">Code</th>
+              <th>Course Name</th>
+              <th>Faculty In-Charge & Lab Team</th>
             </tr>
           </thead>
-          <tbody id="electivesTableBody"></tbody>
+          <tbody id="directoryTableBody"></tbody>
         </table>
       </div>
     </section>
 
-    <!-- VIEW 4: ENGINEERING SPECS & DOCS -->
+    <!-- VIEW 3: PE-1 ELECTIVES -->
+    <section id="panel-electives" class="view-panel">
+      <div class="card-minimal" style="padding:20px; margin-bottom:16px;">
+        <h2 style="font-size:17px; font-weight:700; color:var(--text-main);">Professional Electives (PE-1) Directory</h2>
+        <p style="font-size:13px; color:var(--text-muted); margin-top:4px;">
+          Synchronized across all 12 sections on <b style="color:var(--text-main);">Tuesday 7th Period</b> and <b style="color:var(--text-main);">Thursday 5th & 6th Periods</b>.
+        </p>
+      </div>
+
+      <table class="dir-table">
+        <thead>
+          <tr>
+            <th style="width:90px;">Track</th>
+            <th>Elective Name</th>
+            <th>Faculty</th>
+            <th style="width:100px;">Room</th>
+          </tr>
+        </thead>
+        <tbody id="electivesTableBody"></tbody>
+      </table>
+    </section>
+
+    <!-- VIEW 4: ENGINEERING SPECS -->
     <section id="panel-docs" class="view-panel">
-      <div class="wormhole-glass" style="padding:32px;">
-        <h2 style="font-family:var(--font-display); font-size:28px; color:var(--text-primary); margin-bottom:14px;">
-          🛸 WORMHOLE Architecture & Product Philosophy
+      <div class="card-minimal" style="padding:24px;">
+        <h2 style="font-size:20px; font-weight:700; color:var(--text-main); margin-bottom:8px;">
+          Engineering Specs & Product Documentation
         </h2>
-        <p style="color:var(--text-secondary); line-height:1.7; margin-bottom:24px;">
-          WORMHOLE replaces static academic timetables with an autonomous, high-velocity spacetime intersection engine.
-          Review the open-source engineering blueprints below:
+        <p style="color:var(--text-muted); font-size:13.5px; margin-bottom:20px;">
+          Wormhole is built as a zero-dependency, ultra-lightweight client-side SPA.
         </p>
 
-        <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(240px, 1fr)); gap:16px;">
-          <a href="PHILOSOPHY.md" target="_blank" class="wormhole-glass" style="padding:20px; text-decoration:none; display:block;">
-            <div style="color:var(--neon-cyan); font-family:var(--font-mono); font-size:11px;">MANIFESTO</div>
-            <div style="font-family:var(--font-heading); font-size:18px; font-weight:700; color:var(--text-primary); margin:6px 0;">Product Philosophy →</div>
-            <div style="font-size:13px; color:var(--text-secondary);">The thesis behind frictionless campus coordination.</div>
+        <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:12px;">
+          <a href="PHILOSOPHY.md" target="_blank" class="card-minimal" style="padding:16px; text-decoration:none; display:block;">
+            <div style="font-family:var(--font-mono); font-size:10.5px; color:var(--accent-indigo);">MANIFESTO</div>
+            <div style="font-size:14px; font-weight:600; color:var(--text-main); margin:4px 0;">Product Philosophy →</div>
+            <div style="font-size:12px; color:var(--text-dim);">The thesis behind frictionless campus coordination.</div>
           </a>
 
-          <a href="DESIGN_SYSTEM.md" target="_blank" class="wormhole-glass" style="padding:20px; text-decoration:none; display:block;">
-            <div style="color:var(--neon-purple); font-family:var(--font-mono); font-size:11px;">TOKENS & UX</div>
-            <div style="font-family:var(--font-heading); font-size:18px; font-weight:700; color:var(--text-primary); margin:6px 0;">Cosmic Design System →</div>
-            <div style="font-size:13px; color:var(--text-secondary);">Color hierarchy, glassmorphism specs, and signal matrix.</div>
+          <a href="DESIGN_SYSTEM.md" target="_blank" class="card-minimal" style="padding:16px; text-decoration:none; display:block;">
+            <div style="font-family:var(--font-mono); font-size:10.5px; color:var(--accent-violet);">TOKENS & UX</div>
+            <div style="font-size:14px; font-weight:600; color:var(--text-main); margin:4px 0;">Design System →</div>
+            <div style="font-size:12px; color:var(--text-dim);">Obsidian palette, hairline cards & typography.</div>
           </a>
 
-          <a href="ARCHITECTURE.md" target="_blank" class="wormhole-glass" style="padding:20px; text-decoration:none; display:block;">
-            <div style="color:var(--free); font-family:var(--font-mono); font-size:11px;">ENGINEERING</div>
-            <div style="font-family:var(--font-heading); font-size:18px; font-weight:700; color:var(--text-primary); margin:6px 0;">Technical Architecture →</div>
-            <div style="font-size:13px; color:var(--text-secondary);">Algorithms, audio synthesis pipeline & canvas physics.</div>
+          <a href="ARCHITECTURE.md" target="_blank" class="card-minimal" style="padding:16px; text-decoration:none; display:block;">
+            <div style="font-family:var(--font-mono); font-size:10.5px; color:var(--free-text);">ENGINEERING</div>
+            <div style="font-size:14px; font-weight:600; color:var(--text-main); margin:4px 0;">Technical Specs →</div>
+            <div style="font-size:12px; color:var(--text-dim);">Intersection algorithm & Web Audio synthesis.</div>
           </a>
 
-          <a href="ROADMAP.md" target="_blank" class="wormhole-glass" style="padding:20px; text-decoration:none; display:block;">
-            <div style="color:var(--skiphigh); font-family:var(--font-mono); font-size:11px;">EVOLUTION</div>
-            <div style="font-family:var(--font-heading); font-size:18px; font-weight:700; color:var(--text-primary); margin:6px 0;">Product Roadmap →</div>
-            <div style="font-size:13px; color:var(--text-secondary);">From v1.0 Singularity to v3.0 Autonomous Campus Mesh.</div>
+          <a href="ROADMAP.md" target="_blank" class="card-minimal" style="padding:16px; text-decoration:none; display:block;">
+            <div style="font-family:var(--font-mono); font-size:10.5px; color:var(--flex-text);">EVOLUTION</div>
+            <div style="font-size:14px; font-weight:600; color:var(--text-main); margin:4px 0;">Roadmap →</div>
+            <div style="font-size:12px; color:var(--text-dim);">From v1.0 to v3.0 Autonomous Campus Mesh.</div>
           </a>
         </div>
       </div>
@@ -286,16 +258,12 @@
 
   </main>
 
-  <!-- Global Footer -->
-  <footer class="wormhole-footer">
+  <!-- Minimalist Footer -->
+  <footer class="app-footer">
     <div class="container">
-      <div style="font-family:var(--font-display); font-size:20px; font-weight:800; color:var(--text-primary); margin-bottom:8px;">
-        🌌 WORMHOLE
-      </div>
-      <p class="footer-text">
-        Engineered with precision for Dayananda Sagar University · School of Engineering<br>
-        Department of Computer Science & Engineering · Odd Semester 2026–27<br>
-        Zero dependencies · 100% Client-Side Synthesis · Open Architecture
+      <p class="footer-copy">
+        WORMHOLE · Department of Computer Science & Engineering · Dayananda Sagar University<br>
+        Odd Semester 2026–27 · 100% Client-Side Engine · Zero Dependencies
       </p>
     </div>
   </footer>
