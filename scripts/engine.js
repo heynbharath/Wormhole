@@ -38,8 +38,12 @@ class WormholeApp {
     // 1. Initialize Gravitational Singularity Canvas
     this.vortex = new WormholeVortex("vortexCanvas");
 
-    // 2. Parse URL Hash State (e.g. #squad=H,L,A&sec=H)
+    // 2. Parse URL Hash State (e.g. #squad=H,L,A&sec=H) and detect ERP import
     this.parseURLHash();
+    // Check for ERP attendance import via URL hash bridge
+    if (window.location.hash.startsWith("#att=")) {
+      setTimeout(() => this.handleERPHashImport(), 600);
+    }
 
     // 3. Setup UI & Modules
     this.initNavigation();
@@ -343,22 +347,91 @@ class WormholeApp {
       this.applyScenario("custom");
     });
 
-    // Bookmarklet generator
+    // Smart Bookmarklet — DOM parser + URL bridge
     const bookmarkletBtn = document.getElementById("dsuBookmarkletLink");
     if (bookmarkletBtn) {
-      const code = `javascript:(function(){
-        try {
-          var text = document.body.innerText;
-          navigator.clipboard.writeText(text).then(function(){
-            alert('Wormhole: ERP data copied! Paste into the Wormhole attendance sync box.');
-          });
-        } catch(e) { alert('Error: ' + e); }
-      })();`;
-      bookmarkletBtn.setAttribute("href", code);
+      // Set the smart bookmarklet that parses ERP DOM and opens Wormhole with #att= hash
+      bookmarkletBtn.setAttribute("href", this.generateSmartBookmarklet());
+      bookmarkletBtn.setAttribute("title", "Drag to bookmarks bar. Then go to ums.mydsi.org Attendance Summary and click it. Wormhole opens with your live data pre-loaded.");
+    }
+
+    // Also wire the "How to Sync" guide button if present
+    const howToBtn = document.getElementById("erpHowToSyncBtn");
+    if (howToBtn) {
+      howToBtn.addEventListener("click", () => this.showERPSyncGuide());
     }
   }
 
+  showERPSyncGuide() {
+    const existing = document.getElementById("erpSyncGuideModal");
+    if (existing) { existing.remove(); return; }
+
+    const bookmarkletCode = this.generateSmartBookmarklet();
+    const modal = document.createElement("div");
+    modal.id = "erpSyncGuideModal";
+    modal.className = "cmd-backdrop open";
+    modal.innerHTML = `
+      <div class="cmd-box" style="max-width:560px; width:95vw;">
+        <div class="modal-header">
+          <h3 style="font-size:16px; font-weight:800;">🔗 How to Sync DSU ERP Attendance</h3>
+          <button onclick="document.getElementById('erpSyncGuideModal').remove()" style="background:none;border:none;color:var(--text-dim);font-size:22px;cursor:pointer;">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div style="display:flex; flex-direction:column; gap:14px;">
+
+            <div style="display:flex; gap:12px; align-items:flex-start;">
+              <div style="min-width:28px; height:28px; border-radius:50%; background:var(--primary); display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:800; color:#fff; flex-shrink:0;">1</div>
+              <div>
+                <div style="font-weight:700; color:var(--text-main); margin-bottom:4px;">Drag the bookmarklet to your browser bar</div>
+                <div style="font-size:12px; color:var(--text-dim);">Drag the <b>⭐ ERP Bookmarklet</b> button from the attendance modal header into your bookmarks bar. Do this once.</div>
+                <a href="${bookmarkletCode}" id="erpBookmarkletDrag" style="display:inline-block; margin-top:8px; padding:7px 14px; background:rgba(139,92,246,0.15); border:1px solid rgba(139,92,246,0.4); border-radius:var(--radius-sm); color:var(--primary-light); font-size:12px; font-weight:700; cursor:grab; text-decoration:none;">⭐ Wormhole ERP Sync — drag me to bookmarks bar</a>
+              </div>
+            </div>
+
+            <div style="display:flex; gap:12px; align-items:flex-start;">
+              <div style="min-width:28px; height:28px; border-radius:50%; background:var(--primary); display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:800; color:#fff; flex-shrink:0;">2</div>
+              <div>
+                <div style="font-weight:700; color:var(--text-main); margin-bottom:4px;">Go to ums.mydsi.org → Attendance Summary</div>
+                <div style="font-size:12px; color:var(--text-dim);">Log in normally. Navigate to <b>Timetable → Attendance Summary</b>. Make sure the Attendance Summary tab is selected (not Absent Days or Month View).</div>
+              </div>
+            </div>
+
+            <div style="display:flex; gap:12px; align-items:flex-start;">
+              <div style="min-width:28px; height:28px; border-radius:50%; background:var(--primary); display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:800; color:#fff; flex-shrink:0;">3</div>
+              <div>
+                <div style="font-weight:700; color:var(--text-main); margin-bottom:4px;">Click the bookmarklet</div>
+                <div style="font-size:12px; color:var(--text-dim);">Click the bookmarklet in your bar. It reads your attendance table directly from the page and opens Wormhole in a new tab with all data pre-loaded.</div>
+              </div>
+            </div>
+
+            <div style="display:flex; gap:12px; align-items:flex-start;">
+              <div style="min-width:28px; height:28px; border-radius:50%; background:linear-gradient(135deg,#10B981,#059669); display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:800; color:#fff; flex-shrink:0;">✓</div>
+              <div>
+                <div style="font-weight:700; color:var(--free-text); margin-bottom:4px;">Confirm the import in Wormhole</div>
+                <div style="font-size:12px; color:var(--text-dim);">A preview modal shows all your courses with real data. One click to import — your bunk simulator is now live.</div>
+              </div>
+            </div>
+          </div>
+
+          <div style="margin-top:16px; background:rgba(16,185,129,0.06); border:1px solid rgba(16,185,129,0.2); border-radius:var(--radius-sm); padding:10px 12px; font-size:11.5px; color:var(--free-text);">
+            🔒 <strong>Zero privacy risk.</strong> The bookmarklet runs entirely inside your browser. No data is sent to any server — not DSU, not Wormhole. The ERP data travels only as a URL hash fragment, which is browser-local.
+          </div>
+        </div>
+        <div class="modal-footer" style="justify-content:flex-end;">
+          <button onclick="document.getElementById('erpSyncGuideModal').remove()" class="btn-solid">Got it</button>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(modal);
+    modal.addEventListener("click", (e) => { if (e.target === modal) modal.remove(); });
+
+    // Set the drag bookmarklet in the guide too
+    const guideBookmark = document.getElementById("erpBookmarkletDrag");
+    if (guideBookmark) guideBookmark.setAttribute("href", bookmarkletCode);
+  }
+
   applyScenario(scenario) {
+
     // Deep-clone real attendance as base
     const base = JSON.parse(JSON.stringify(this.attendance));
 
@@ -399,6 +472,12 @@ class WormholeApp {
   renderAttendanceSummaryStrip(scenario) {
     const strip = document.getElementById("attendanceSummaryStrip");
     if (!strip) return;
+
+    // Hide ERP sync banner if data has been synced from ERP
+    const syncBanner = document.getElementById("erpSyncBanner");
+    if (syncBanner && this.attendance.student && this.attendance.student.syncedAt) {
+      syncBanner.style.display = "none";
+    }
 
     const courses = this.simulatedAttendance.courses;
     const totalConducted = courses.reduce((s, c) => s + c.conducted, 0);
@@ -647,7 +726,7 @@ class WormholeApp {
   /* ===================== URL HASH STATE SERIALIZATION ===================== */
   parseURLHash() {
     const hash = window.location.hash.replace("#", "");
-    if (!hash) return;
+    if (!hash || hash.startsWith("att=")) return; // skip ERP import hash
 
     const params = new URLSearchParams(hash);
     if (params.has("squad")) {
@@ -661,6 +740,310 @@ class WormholeApp {
         this.profile.section = s;
       }
     }
+  }
+
+  /* ===================== DSU ERP URL-BRIDGE SYNC ===================== */
+
+  /**
+   * Generates a smart bookmarklet that:
+   * 1. Runs on ums.mydsi.org attendance page
+   * 2. Parses the DOM table (not raw text)
+   * 3. Encodes structured JSON as base64
+   * 4. Opens Wormhole with #att=<base64> hash — zero server calls
+   */
+  generateSmartBookmarklet() {
+    const wormholeBase = window.location.href.split("#")[0];
+
+    // Minified bookmarklet — runs on DSU ERP, no server involved
+    const code = `javascript:(function(){
+  var h=window.location.hostname;
+  if(!h.includes('mydsi')&&!h.includes('dsu.ac.in')&&!h.includes('localhost')){
+    alert('\u26a0\ufe0f Open this bookmarklet on ums.mydsi.org \u2192 Attendance Summary page.');
+    return;
+  }
+  try{
+    // Extract student name from heading
+    var sName='';
+    document.querySelectorAll('h1,h2,h3,h4,h5').forEach(function(el){
+      var t=el.innerText||el.textContent;
+      if(t.includes('Attendance Summary')){
+        sName=t.split('Attendance Summary').pop().replace(/of\s*Semester\s*\d+/i,'').trim();
+      }
+    });
+    if(!sName){
+      var uel=document.querySelector('.user-name,.student-name,[class*=username],[class*=user-info]');
+      if(uel)sName=uel.textContent.trim();
+    }
+    // Find attendance table
+    var attTable=null;
+    document.querySelectorAll('table').forEach(function(t){
+      t.querySelectorAll('th').forEach(function(th){
+        if(th.textContent.trim().toLowerCase()==='conducted')attTable=t;
+      });
+    });
+    if(!attTable){alert('\u274c Cannot find attendance table.\nPlease navigate to Attendance Summary tab on ums.mydsi.org.');return;}
+    var courses=[],tc=0,tp=0;
+    attTable.querySelectorAll('tbody tr').forEach(function(row){
+      var c=row.querySelectorAll('td');
+      if(c.length<6)return;
+      var courseText=(c[2].innerText||c[2].textContent).trim();
+      var condText=(c[3].innerText||c[3].textContent).trim();
+      if(!courseText||courseText.toLowerCase()==='total'||!/\d/.test(condText))return;
+      var conducted=parseInt(condText)||0;
+      var present=parseInt((c[4].innerText||c[4].textContent).trim())||0;
+      var absent=parseInt((c[5].innerText||c[5].textContent).trim())||0;
+      var slotType=(c[1].innerText||c[1].textContent).trim();
+      var codeM=courseText.match(/^(24[A-Z]{2}\d{4})/);
+      var code=codeM?codeM[1]:courseText.substring(0,10).replace(/\s/g,'');
+      var name=courseText.replace(/^24[A-Z]{2}\d{4}\s*[-\u2013\u2014]?\s*/,'').trim()||courseText;
+      var pct=conducted>0?parseFloat(((present/conducted)*100).toFixed(2)):100;
+      courses.push({code:code,name:name,type:slotType,conducted:conducted,present:present,absent:absent,pct:pct,faculty:''});
+      tc+=conducted;tp+=present;
+    });
+    if(!courses.length){alert('\u274c No course rows found. Navigate to Attendance Summary > Attendance Summary tab.');return;}
+    var overallPct=tc>0?parseFloat(((tp/tc)*100).toFixed(2)):100;
+    var payload=JSON.stringify({
+      student:{name:sName,totalConducted:tc,totalPresent:tp,totalAbsent:tc-tp,overallPct:overallPct,syncedAt:new Date().toISOString()},
+      courses:courses
+    });
+    var encoded=btoa(unescape(encodeURIComponent(payload)));
+    var url='${wormholeBase}#att='+encoded;
+    window.open(url,'_blank');
+  }catch(e){alert('Wormhole Sync Error: '+e.message);}
+})();`;
+
+    return code;
+  }
+
+  handleERPHashImport() {
+    const hash = window.location.hash;
+    if (!hash.startsWith("#att=")) return;
+
+    try {
+      const encoded = hash.slice(5);
+      const decoded = decodeURIComponent(escape(atob(encoded)));
+      const data = JSON.parse(decoded);
+
+      if (!data || !data.courses || !Array.isArray(data.courses) || data.courses.length === 0) {
+        throw new Error("Invalid or empty attendance data");
+      }
+
+      // Clear hash from URL without reload
+      history.replaceState(null, "", window.location.pathname + window.location.search);
+
+      // Show import preview modal
+      this.showERPImportModal(data);
+    } catch (e) {
+      console.error("ERP Import failed:", e);
+      history.replaceState(null, "", window.location.pathname + window.location.search);
+    }
+  }
+
+  showERPImportModal(data) {
+    const existing = document.getElementById("erpImportModal");
+    if (existing) existing.remove();
+
+    const st = data.student || {};
+    const courses = data.courses || [];
+    const syncedAt = st.syncedAt ? new Date(st.syncedAt).toLocaleString("en-IN", { hour12: true, hour: "2-digit", minute: "2-digit", day: "numeric", month: "short" }) : "just now";
+    const isSafe = st.overallPct >= 75;
+
+    // Preserve faculty from existing attendance data
+    const existingFacultyMap = {};
+    (this.attendance.courses || []).forEach((c) => {
+      if (c.faculty) existingFacultyMap[c.code] = c.faculty;
+    });
+
+    const courseRows = courses.map((c) => {
+      const pct = c.pct || (c.conducted > 0 ? (c.present / c.conducted) * 100 : 100);
+      const barW = Math.min(100, pct);
+      const barColor = pct >= 85 ? "#10B981" : pct >= 75 ? "#34D399" : pct >= 65 ? "#FBBF24" : "#EF4444";
+      const safe = pct >= 75;
+      return `
+        <tr>
+          <td style="padding:6px 8px;">
+            <div style="font-weight:600; color:var(--text-main); font-size:12px;">${c.name}</div>
+            <div style="font-size:10.5px; color:var(--text-dim);">${c.code} · ${c.type || "Theory"}</div>
+          </td>
+          <td style="text-align:center; font-family:var(--font-mono); font-size:12px; padding:6px 8px;">${c.conducted}</td>
+          <td style="text-align:center; font-family:var(--font-mono); color:var(--free-text); font-size:12px; padding:6px 8px;">${c.present}</td>
+          <td style="padding:6px 8px; min-width:100px;">
+            <div style="font-family:var(--font-mono); font-weight:800; font-size:13px; color:${barColor};">${pct.toFixed(1)}%</div>
+            <div style="height:3px; border-radius:2px; background:rgba(255,255,255,0.06); margin-top:3px;">
+              <div style="width:${barW}%; height:100%; border-radius:2px; background:${barColor};"></div>
+            </div>
+          </td>
+          <td style="text-align:center; padding:6px 8px;">
+            <span style="font-size:10px; color:${safe ? "var(--free-text)" : "#EF4444"}; font-weight:700;">${safe ? "✓ SAFE" : "⚠ AT RISK"}</span>
+          </td>
+        </tr>
+      `;
+    }).join("");
+
+    const modal = document.createElement("div");
+    modal.id = "erpImportModal";
+    modal.className = "cmd-backdrop open";
+    modal.innerHTML = `
+      <div class="cmd-box" style="max-width:680px; width:95vw; animation:fadeInUp 0.35s ease;">
+        <div class="modal-header">
+          <div style="display:flex; align-items:center; gap:10px;">
+            <div style="width:36px; height:36px; border-radius:50%; background:linear-gradient(135deg,#10B981,#34D399); display:flex; align-items:center; justify-content:center; font-size:18px;">🔗</div>
+            <div>
+              <div style="font-size:15px; font-weight:800; color:var(--text-main);">DSU ERP Attendance Sync</div>
+              <div style="font-size:11px; color:var(--text-dim);">Synced at ${syncedAt} · ums.mydsi.org</div>
+            </div>
+          </div>
+          <button onclick="document.getElementById('erpImportModal').remove()" style="background:none;border:none;color:var(--text-dim);font-size:22px;cursor:pointer;line-height:1;">&times;</button>
+        </div>
+
+        <div class="modal-body">
+          <!-- Summary Strip -->
+          <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin-bottom:16px; padding-bottom:14px; border-bottom:1px solid var(--border-subtle);">
+            <div style="background:rgba(255,255,255,0.03); border:1px solid var(--border-subtle); border-radius:var(--radius-sm); padding:10px;">
+              <div style="font-size:10px; color:var(--text-dim); text-transform:uppercase; letter-spacing:0.06em; margin-bottom:3px;">Student</div>
+              <div style="font-size:13px; font-weight:700; color:var(--text-main);">${st.name || "Unknown"}</div>
+            </div>
+            <div style="background:rgba(255,255,255,0.03); border:1px solid var(--border-subtle); border-radius:var(--radius-sm); padding:10px;">
+              <div style="font-size:10px; color:var(--text-dim); text-transform:uppercase; letter-spacing:0.06em; margin-bottom:3px;">Overall</div>
+              <div style="font-size:20px; font-weight:800; font-family:var(--font-mono); color:${isSafe ? "var(--free-text)" : "#EF4444"}">${st.overallPct}%</div>
+            </div>
+            <div style="background:rgba(255,255,255,0.03); border:1px solid var(--border-subtle); border-radius:var(--radius-sm); padding:10px;">
+              <div style="font-size:10px; color:var(--text-dim); text-transform:uppercase; letter-spacing:0.06em; margin-bottom:3px;">Attended</div>
+              <div style="font-size:20px; font-weight:800; font-family:var(--font-mono); color:var(--text-main);">${st.totalPresent}/${st.totalConducted}</div>
+            </div>
+            <div style="background:rgba(255,255,255,0.03); border:1px solid var(--border-subtle); border-radius:var(--radius-sm); padding:10px;">
+              <div style="font-size:10px; color:var(--text-dim); text-transform:uppercase; letter-spacing:0.06em; margin-bottom:3px;">Courses</div>
+              <div style="font-size:20px; font-weight:800; font-family:var(--font-mono); color:var(--text-main);">${courses.length}</div>
+            </div>
+          </div>
+
+          <!-- Course Preview -->
+          <div style="font-size:10px; font-weight:700; letter-spacing:0.08em; color:var(--text-dim); text-transform:uppercase; margin-bottom:8px;">Course Breakdown from ERP</div>
+          <div style="max-height:260px; overflow-y:auto; border:1px solid var(--border-subtle); border-radius:var(--radius-sm); margin-bottom:14px;">
+            <table style="width:100%; border-collapse:collapse; font-size:12px;">
+              <thead>
+                <tr style="background:rgba(255,255,255,0.04);">
+                  <th style="text-align:left; padding:7px 8px; font-family:var(--font-mono); font-size:10px; color:var(--text-dim); text-transform:uppercase;">Course</th>
+                  <th style="text-align:center; padding:7px 8px; font-family:var(--font-mono); font-size:10px; color:var(--text-dim);">Total</th>
+                  <th style="text-align:center; padding:7px 8px; font-family:var(--font-mono); font-size:10px; color:var(--text-dim);">Present</th>
+                  <th style="padding:7px 8px; font-family:var(--font-mono); font-size:10px; color:var(--text-dim);">%</th>
+                  <th style="text-align:center; padding:7px 8px; font-family:var(--font-mono); font-size:10px; color:var(--text-dim);">Status</th>
+                </tr>
+              </thead>
+              <tbody>${courseRows}</tbody>
+            </table>
+          </div>
+
+          <div style="background:rgba(16,185,129,0.06); border:1px solid rgba(16,185,129,0.2); border-radius:var(--radius-sm); padding:10px 12px; font-size:12px; color:var(--free-text); margin-bottom:14px;">
+            🔒 <strong>100% Private.</strong> This data was read directly from your browser — nothing was sent to any external server. Only you can see it.
+          </div>
+        </div>
+
+        <div class="modal-footer" style="display:flex; justify-content:space-between; align-items:center;">
+          <button onclick="document.getElementById('erpImportModal').remove()" class="btn-outline">Cancel</button>
+          <div style="display:flex; gap:10px;">
+            <div id="erpImportQrContainer" style="display:none;"></div>
+            <button id="erpImportQrBtn" class="btn-outline" style="font-size:12px;">📱 QR for Mobile</button>
+            <button id="erpImportConfirmBtn" class="btn-solid" style="background:linear-gradient(135deg,#10B981,#059669);">⚡ Import ${courses.length} Courses</button>
+          </div>
+        </div>
+      </div>
+    `;
+
+    document.body.appendChild(modal);
+
+    // Confirm import
+    const confirmBtn = document.getElementById("erpImportConfirmBtn");
+    if (confirmBtn) {
+      confirmBtn.addEventListener("click", () => {
+        // Merge faculty from existing data
+        const mergedCourses = data.courses.map((c) => ({
+          ...c,
+          faculty: existingFacultyMap[c.code] || c.faculty || "",
+        }));
+
+        const mergedData = {
+          student: {
+            ...this.attendance.student,
+            ...st,
+          },
+          courses: mergedCourses,
+        };
+
+        this.saveAttendance(mergedData);
+        WormholeAudio.resonance();
+        modal.remove();
+
+        // Show toast
+        this.showToast(`✓ Imported ${mergedCourses.length} courses from DSU ERP`, "success");
+      });
+    }
+
+    // QR Code for mobile
+    const qrBtn = document.getElementById("erpImportQrBtn");
+    if (qrBtn) {
+      qrBtn.addEventListener("click", () => {
+        const qrContainer = document.getElementById("erpImportQrContainer");
+        const currentUrl = window.location.href.split("#")[0] + window.location.hash;
+        if (qrContainer) {
+          qrContainer.style.display = "flex";
+          qrContainer.style.alignItems = "center";
+          qrContainer.style.gap = "8px";
+          // Use Google Charts QR API (public, no auth needed)
+          const encoded = encodeURIComponent(window.location.href.split("#")[0] + "#att=" + hash.slice(5));
+          qrContainer.innerHTML = `
+            <img src="https://chart.googleapis.com/chart?chs=120x120&cht=qr&chl=${encoded}&choe=UTF-8"
+                 style="border-radius:6px; background:#fff; padding:4px;" width="80" height="80" alt="QR Code" />
+            <span style="font-size:11px; color:var(--text-dim);">Scan to open<br>on mobile</span>
+          `;
+          qrBtn.style.display = "none";
+        }
+      });
+    }
+
+    // Close on backdrop click
+    modal.addEventListener("click", (e) => {
+      if (e.target === modal) modal.remove();
+    });
+  }
+
+  showToast(message, type = "success") {
+    const existing = document.getElementById("wormholeToast");
+    if (existing) existing.remove();
+
+    const toast = document.createElement("div");
+    toast.id = "wormholeToast";
+    toast.style.cssText = `
+      position: fixed;
+      bottom: 28px;
+      left: 50%;
+      transform: translateX(-50%) translateY(20px);
+      background: ${ type === "success" ? "rgba(16,185,129,0.15)" : "rgba(239,68,68,0.15)"};
+      border: 1px solid ${ type === "success" ? "rgba(16,185,129,0.4)" : "rgba(239,68,68,0.4)"};
+      color: ${ type === "success" ? "#10B981" : "#EF4444"};
+      padding: 10px 22px;
+      border-radius: 30px;
+      font-size: 13px;
+      font-weight: 600;
+      backdrop-filter: blur(12px);
+      z-index: 10000;
+      opacity: 0;
+      transition: all 0.3s ease;
+      white-space: nowrap;
+    `;
+    toast.textContent = message;
+    document.body.appendChild(toast);
+
+    requestAnimationFrame(() => {
+      toast.style.opacity = "1";
+      toast.style.transform = "translateX(-50%) translateY(0)";
+    });
+
+    setTimeout(() => {
+      toast.style.opacity = "0";
+      toast.style.transform = "translateX(-50%) translateY(10px)";
+      setTimeout(() => toast.remove(), 300);
+    }, 3000);
   }
 
   updateURLHash() {

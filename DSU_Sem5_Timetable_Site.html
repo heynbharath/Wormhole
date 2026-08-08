@@ -362,13 +362,22 @@
           <span class="badge-version">ums.mydsi.org</span>
         </div>
         <div style="display:flex; align-items:center; gap:8px;">
-          <a id="dsuBookmarkletLink" class="nav-btn" href="#" style="color:var(--accent-cyan); font-size:11px;" title="Drag to bookmarks bar to grab ERP data in one click">⭐ ERP Bookmarklet</a>
+          <button id="erpHowToSyncBtn" class="nav-btn" style="color:var(--accent-cyan); font-size:11px; font-weight:700;">🔗 Sync from ERP</button>
+          <a id="dsuBookmarkletLink" class="nav-btn" href="#" style="color:var(--text-dim); font-size:11px;" title="Drag to bookmarks bar. Go to ums.mydsi.org, click it, Wormhole auto-imports your data.">⭐ Bookmarklet</a>
           <button id="resetAttendanceBtn" class="nav-btn" style="font-size:11px;">↺ Reset</button>
           <button class="chip-remove" id="closeAttendanceModalBtn" style="font-size:18px;">&times;</button>
         </div>
       </div>
 
       <div class="modal-body">
+
+        <!-- ERP Sync Banner (shown when data is default/unsynced) -->
+        <div id="erpSyncBanner" style="display:flex; align-items:center; justify-content:space-between; padding:10px 14px; background:rgba(139,92,246,0.08); border:1px solid rgba(139,92,246,0.25); border-radius:var(--radius-sm); margin-bottom:14px; gap:12px;">
+          <div style="font-size:12px; color:var(--text-muted);">
+            <b style="color:var(--primary-light);">⚡ Live ERP Sync available.</b> Drag the bookmarklet to your browser bar, then go to <b>ums.mydsi.org → Attendance Summary</b> and click it. Your real data auto-imports here.
+          </div>
+          <button id="erpHowToSyncBtn2" class="btn-solid" style="white-space:nowrap; padding:6px 14px; font-size:12px;" onclick="Wormhole.showERPSyncGuide()">How to Sync →</button>
+        </div>
 
         <!-- Top: Overall Summary Strip -->
         <div id="attendanceSummaryStrip" style="display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin-bottom:18px; padding-bottom:16px; border-bottom:1px solid var(--border-subtle);"></div>
