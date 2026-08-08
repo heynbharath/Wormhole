@@ -74,6 +74,16 @@ class WormholeApp {
   /* ===================== STUDENT PROFILE MANAGEMENT ===================== */
   loadProfile() {
     try {
+      const activeName = localStorage.getItem("wormhole_active_profile_name");
+      if (activeName) {
+        const all = localStorage.getItem("wormhole_all_profiles");
+        if (all) {
+          const parsedAll = JSON.parse(all);
+          if (parsedAll[activeName] && parsedAll[activeName].profile) {
+            return parsedAll[activeName].profile;
+          }
+        }
+      }
       const saved = localStorage.getItem("wormhole_student_profile");
       if (saved) {
         const parsed = JSON.parse(saved);
@@ -93,6 +103,14 @@ class WormholeApp {
     this.profile = { ...this.profile, ...newProfile };
     try {
       localStorage.setItem("wormhole_student_profile", JSON.stringify(this.profile));
+      localStorage.setItem("wormhole_active_profile_name", this.profile.name);
+      
+      const all = this.getAllProfiles();
+      all[this.profile.name] = {
+        profile: this.profile,
+        attendance: this.attendance
+      };
+      localStorage.setItem("wormhole_all_profiles", JSON.stringify(all));
     } catch (e) {}
     this.currentSection = this.profile.section;
     this.renderProfileBanner();
@@ -128,26 +146,8 @@ class WormholeApp {
       this.profileModalOpen = true;
       if (modal) modal.classList.add("open");
 
-      // Fill identity fields
-      const nameInput = document.getElementById("profileNameInput");
-      const usnInput = document.getElementById("profileUsnInput");
-      if (nameInput) nameInput.value = this.profile.name || "";
-      if (usnInput) usnInput.value = this.profile.usn || "";
-
-      // Fill academic fields
-      const secSelect = document.getElementById("profileSectionSelect");
-      const batchSelect = document.getElementById("profileBatchSelect");
-      const electiveSelect = document.getElementById("profileElectiveSelect");
-
-      if (secSelect) secSelect.value = this.profile.section;
-      if (batchSelect) batchSelect.value = String(this.profile.labBatch);
-
-      populateElectives();
-      if (electiveSelect && this.profile.pe1 && this.profile.pe1.code) {
-        electiveSelect.value = this.profile.pe1.code;
-      }
-
-      this.updateElectiveFacultyOptions();
+      this.updateProfileModalFormValues();
+      this.renderProfileSwitcherList();
 
       // Hide status
       const status = document.getElementById("profileSaveStatus");
@@ -243,6 +243,201 @@ class WormholeApp {
     });
   }
 
+  getAllProfiles() {
+    try {
+      const saved = localStorage.getItem("wormhole_all_profiles");
+      if (saved) return JSON.parse(saved);
+    } catch (e) {}
+    const initial = {
+      [this.profile.name]: {
+        profile: this.profile,
+        attendance: this.attendance
+      }
+    };
+    try {
+      localStorage.setItem("wormhole_all_profiles", JSON.stringify(initial));
+    } catch (e) {}
+    return initial;
+  }
+
+  switchProfile(name) {
+    const all = this.getAllProfiles();
+    const target = all[name];
+    if (!target) return;
+
+    try {
+      localStorage.setItem("wormhole_active_profile_name", name);
+      localStorage.setItem("wormhole_student_profile", JSON.stringify(target.profile));
+      localStorage.setItem("wormhole_dsu_attendance", JSON.stringify(target.attendance));
+
+      this.profile = target.profile;
+      this.attendance = target.attendance;
+      this.simulatedAttendance = JSON.parse(JSON.stringify(target.attendance));
+
+      this.currentSection = this.profile.section;
+
+      this.updateProfileModalFormValues();
+
+      this.renderProfileBanner();
+      this.buildSectionPigeonholes();
+      this.renderChronosGrid();
+      this.renderElectives();
+      this.renderAnalytics();
+      this.renderSquadSync();
+      this.renderAttendanceDashboard();
+
+      this.renderProfileSwitcherList();
+
+      this.showToast(`Switched profile to ${name}`, "success");
+    } catch (e) {
+      console.error("Failed to switch profile", e);
+    }
+  }
+
+  deleteProfile(name, e) {
+    if (e) e.stopPropagation();
+
+    const all = this.getAllProfiles();
+    if (Object.keys(all).length <= 1) {
+      this.showToast("Cannot delete the only profile!", "error");
+      return;
+    }
+
+    if (confirm(`Are you sure you want to delete profile "${name}"?`)) {
+      delete all[name];
+      try {
+        localStorage.setItem("wormhole_all_profiles", JSON.stringify(all));
+
+        const activeName = localStorage.getItem("wormhole_active_profile_name");
+        if (activeName === name) {
+          const remainingName = Object.keys(all)[0];
+          this.switchProfile(remainingName);
+        } else {
+          this.renderProfileSwitcherList();
+        }
+        this.showToast(`Deleted profile ${name}`, "success");
+      } catch (e) {}
+    }
+  }
+
+  updateProfileModalFormValues() {
+    const nameInput = document.getElementById("profileNameInput");
+    const usnInput = document.getElementById("profileUsnInput");
+    if (nameInput) nameInput.value = this.profile.name || "";
+    if (usnInput) usnInput.value = this.profile.usn || "";
+
+    const secSelect = document.getElementById("profileSectionSelect");
+    const batchSelect = document.getElementById("profileBatchSelect");
+    const electiveSelect = document.getElementById("profileElectiveSelect");
+
+    if (secSelect) secSelect.value = this.profile.section;
+    if (batchSelect) batchSelect.value = String(this.profile.labBatch);
+
+    const populateElectives = () => {
+      const elSelect = document.getElementById("profileElectiveSelect");
+      if (!elSelect) return;
+      elSelect.innerHTML = "";
+      ELECTIVES.forEach((e) => {
+        const opt = document.createElement("option");
+        opt.value = e.code;
+        opt.textContent = `${e.name}`;
+        if (this.profile.pe1 && this.profile.pe1.code === e.code) {
+          opt.selected = true;
+        }
+        elSelect.appendChild(opt);
+      });
+    };
+    populateElectives();
+    if (electiveSelect && this.profile.pe1 && this.profile.pe1.code) {
+      electiveSelect.value = this.profile.pe1.code;
+    }
+    this.updateElectiveFacultyOptions();
+  }
+
+  renderProfileSwitcherList() {
+    const container = document.getElementById("profileSwitcherList");
+    if (!container) return;
+    container.innerHTML = "";
+
+    const all = this.getAllProfiles();
+    const activeName = localStorage.getItem("wormhole_active_profile_name") || this.profile.name;
+
+    Object.keys(all).forEach((name) => {
+      const prof = all[name].profile;
+      const att = all[name].attendance;
+      const isActive = name === activeName;
+
+      const pct = att.student ? (att.student.overallPct || 0) : 0;
+      const color = pct >= 75 ? "var(--free-text)" : "#EF4444";
+
+      const pill = document.createElement("div");
+      pill.style.cssText = `
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        background: ${isActive ? "rgba(139, 92, 246, 0.2)" : "rgba(255, 255, 255, 0.03)"};
+        border: 1px solid ${isActive ? "var(--primary)" : "var(--border-subtle)"};
+        padding: 6px 12px;
+        border-radius: 20px;
+        cursor: pointer;
+        font-size: 12px;
+        transition: all 0.2s ease;
+      `;
+
+      if (!isActive) {
+        pill.addEventListener("mouseover", () => {
+          pill.style.background = "rgba(255, 255, 255, 0.08)";
+        });
+        pill.addEventListener("mouseout", () => {
+          pill.style.background = "rgba(255, 255, 255, 0.03)";
+        });
+      }
+
+      pill.addEventListener("click", () => {
+        this.switchProfile(name);
+      });
+
+      const infoSpan = document.createElement("span");
+      infoSpan.innerHTML = `<strong>${name}</strong> <span style="color:${color}; font-family:var(--font-mono); font-size:11px;">(${pct.toFixed(0)}%)</span>`;
+      pill.appendChild(infoSpan);
+
+      if (Object.keys(all).length > 1) {
+        const delBtn = document.createElement("span");
+        delBtn.innerHTML = "&times;";
+        delBtn.style.cssText = `
+          margin-left: 6px;
+          color: var(--text-dim);
+          font-size: 16px;
+          font-weight: bold;
+          cursor: pointer;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          width: 14px;
+          height: 14px;
+          border-radius: 50%;
+          transition: all 0.2s;
+        `;
+        delBtn.addEventListener("mouseover", (e) => {
+          e.stopPropagation();
+          delBtn.style.color = "#EF4444";
+          delBtn.style.background = "rgba(239, 68, 68, 0.1)";
+        });
+        delBtn.addEventListener("mouseout", (e) => {
+          e.stopPropagation();
+          delBtn.style.color = "var(--text-dim)";
+          delBtn.style.background = "transparent";
+        });
+        delBtn.addEventListener("click", (e) => {
+          this.deleteProfile(name, e);
+        });
+        pill.appendChild(delBtn);
+      }
+
+      container.appendChild(pill);
+    });
+  }
+
   renderProfileBanner() {
     const nameEl = document.getElementById("profileStudentName");
     const usnEl = document.getElementById("profileStudentUsn");
@@ -265,6 +460,16 @@ class WormholeApp {
   /* ===================== DSU ERP ATTENDANCE SYNC ===================== */
   loadAttendance() {
     try {
+      const activeName = localStorage.getItem("wormhole_active_profile_name");
+      if (activeName) {
+        const all = localStorage.getItem("wormhole_all_profiles");
+        if (all) {
+          const parsedAll = JSON.parse(all);
+          if (parsedAll[activeName] && parsedAll[activeName].attendance) {
+            return parsedAll[activeName].attendance;
+          }
+        }
+      }
       const saved = localStorage.getItem("wormhole_dsu_attendance");
       if (saved) return JSON.parse(saved);
     } catch (e) {
@@ -278,6 +483,23 @@ class WormholeApp {
     this.simulatedAttendance = JSON.parse(JSON.stringify(data));
     try {
       localStorage.setItem("wormhole_dsu_attendance", JSON.stringify(data));
+      if (data.student && data.student.name) {
+        localStorage.setItem("wormhole_active_profile_name", data.student.name);
+        
+        // Also update name and usn in this.profile if it changed
+        if (this.profile.name !== data.student.name) {
+          this.profile.name = data.student.name;
+          if (data.student.usn) this.profile.usn = data.student.usn;
+          localStorage.setItem("wormhole_student_profile", JSON.stringify(this.profile));
+        }
+
+        const all = this.getAllProfiles();
+        all[data.student.name] = {
+          profile: this.profile,
+          attendance: this.attendance
+        };
+        localStorage.setItem("wormhole_all_profiles", JSON.stringify(all));
+      }
     } catch (e) {}
     this.renderAttendanceDashboard();
     this.renderChronosGrid();
