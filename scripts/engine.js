@@ -71,7 +71,14 @@ class WormholeApp {
   loadProfile() {
     try {
       const saved = localStorage.getItem("wormhole_student_profile");
-      if (saved) return JSON.parse(saved);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed && parsed.pe1 && parsed.pe1.code) {
+          // Validate that elective exists
+          const exists = ELECTIVES.find((e) => e.code === parsed.pe1.code);
+          if (exists) return parsed;
+        }
+      }
     } catch (e) {
       console.warn("Could not load stored profile, using defaults", e);
     }
@@ -87,6 +94,7 @@ class WormholeApp {
     this.renderProfileBanner();
     this.buildSectionPigeonholes();
     this.renderChronosGrid();
+    this.renderElectives();
     this.renderAnalytics();
     this.renderSquadSync();
   }
@@ -95,6 +103,21 @@ class WormholeApp {
     const modal = document.getElementById("profileModal");
     const closeBtn = document.getElementById("closeProfileModalBtn");
     const saveBtn = document.getElementById("saveProfileBtn");
+
+    const populateElectives = () => {
+      const electiveSelect = document.getElementById("profileElectiveSelect");
+      if (!electiveSelect) return;
+      electiveSelect.innerHTML = "";
+      ELECTIVES.forEach((e) => {
+        const opt = document.createElement("option");
+        opt.value = e.code;
+        opt.textContent = `${e.name}`;
+        if (this.profile.pe1 && this.profile.pe1.code === e.code) {
+          opt.selected = true;
+        }
+        electiveSelect.appendChild(opt);
+      });
+    };
 
     window.openProfileModal = () => {
       WormholeAudio.tick();
@@ -105,11 +128,14 @@ class WormholeApp {
       const secSelect = document.getElementById("profileSectionSelect");
       const batchSelect = document.getElementById("profileBatchSelect");
       const electiveSelect = document.getElementById("profileElectiveSelect");
-      const facultySelect = document.getElementById("profileElectiveFacultySelect");
 
       if (secSelect) secSelect.value = this.profile.section;
-      if (batchSelect) batchSelect.value = this.profile.labBatch;
-      if (electiveSelect) electiveSelect.value = this.profile.pe1.code;
+      if (batchSelect) batchSelect.value = String(this.profile.labBatch);
+
+      populateElectives();
+      if (electiveSelect && this.profile.pe1 && this.profile.pe1.code) {
+        electiveSelect.value = this.profile.pe1.code;
+      }
 
       this.updateElectiveFacultyOptions();
     };
@@ -138,17 +164,25 @@ class WormholeApp {
         const electiveCode = document.getElementById("profileElectiveSelect").value;
         const facultyVal = document.getElementById("profileElectiveFacultySelect").value;
 
-        const [facultyName, room] = facultyVal.split("||");
+        let facultyName = "Prof. Goutham T R (Gowtham)";
+        let room = "A432";
+        if (facultyVal && facultyVal.includes("||")) {
+          const parts = facultyVal.split("||");
+          facultyName = parts[0];
+          room = parts[1];
+        }
+
         const electiveObj = ELECTIVES.find((e) => e.code === electiveCode) || ELECTIVES[0];
+        const cleanName = electiveObj.name.includes("—") ? electiveObj.name.split("—")[1].trim() : electiveObj.name;
 
         this.saveProfile({
           section: sec,
           labBatch: batch,
           pe1: {
             code: electiveCode,
-            name: electiveObj.name.split("—")[1]?.trim() || electiveObj.name,
-            faculty: facultyName || "Prof. Goutham T R (Gowtham)",
-            room: room || "A432",
+            name: cleanName,
+            faculty: facultyName,
+            room: room,
           },
         });
 
@@ -171,8 +205,13 @@ class WormholeApp {
       const opt = document.createElement("option");
       opt.value = `${f.name}||${f.room}`;
       opt.textContent = `${f.name} (Room ${f.room})`;
-      if (this.profile.pe1.faculty && f.name.includes(this.profile.pe1.faculty.split(" ")[1] || "")) {
-        opt.selected = true;
+
+      if (this.profile.pe1 && this.profile.pe1.faculty) {
+        const pFac = this.profile.pe1.faculty.toLowerCase();
+        const fName = f.name.toLowerCase();
+        if (pFac === fName || fName.includes(pFac) || pFac.includes(fName) || (pFac.includes("gowtham") && fName.includes("goutham"))) {
+          opt.selected = true;
+        }
       }
       facultySelect.appendChild(opt);
     });
@@ -184,12 +223,17 @@ class WormholeApp {
     const secEl = document.getElementById("profileStudentSection");
     const batchEl = document.getElementById("profileStudentBatch");
     const pe1El = document.getElementById("profileStudentElective");
+    const navTag = document.getElementById("profileNavTag");
 
     if (nameEl) nameEl.textContent = this.profile.name;
     if (usnEl) usnEl.textContent = this.profile.usn;
     if (secEl) secEl.textContent = `Section 5${this.profile.section}`;
     if (batchEl) batchEl.textContent = `Batch 5${this.profile.section}${this.profile.labBatch}`;
-    if (pe1El) pe1El.textContent = `${this.profile.pe1.name} (${this.profile.pe1.faculty.split("(")[0].trim()})`;
+    if (pe1El) {
+      const facName = this.profile.pe1.faculty ? this.profile.pe1.faculty.replace("Prof. ", "").replace("Dr. ", "").split(" (")[0] : "";
+      pe1El.textContent = `${this.profile.pe1.name} (${facName} · ${this.profile.pe1.room})`;
+    }
+    if (navTag) navTag.textContent = `Profile: 5${this.profile.section}${this.profile.labBatch}`;
   }
 
   /* ===================== DSU ERP ATTENDANCE SYNC ===================== */
@@ -1188,13 +1232,33 @@ class WormholeApp {
     tbody.innerHTML = "";
 
     ELECTIVES.forEach((e) => {
-      e.rows.forEach((r, idx) => {
+      const list = e.facultyList || (e.rows || []).map((r) => ({ name: r[0], room: r[1] }));
+      list.forEach((f, idx) => {
+        const isMyElective =
+          this.profile.pe1 &&
+          this.profile.pe1.code === e.code &&
+          (this.profile.pe1.faculty === f.name ||
+            (this.profile.pe1.faculty &&
+              (f.name.toLowerCase().includes(this.profile.pe1.faculty.toLowerCase()) ||
+                this.profile.pe1.faculty.toLowerCase().includes(f.name.toLowerCase()) ||
+                (this.profile.pe1.faculty.toLowerCase().includes("gowtham") && f.name.toLowerCase().includes("goutham")))));
+
         const tr = document.createElement("tr");
+        if (isMyElective) {
+          tr.style.background = "rgba(99, 102, 241, 0.12)";
+          tr.style.borderLeft = "2px solid var(--accent-indigo)";
+        }
+
         tr.innerHTML = `
           <td class="mono-code">${idx === 0 ? `Track 0${e.no}` : ""}</td>
-          <td style="font-weight:500; color:var(--text-main);">${idx === 0 ? e.name : ""}</td>
-          <td>${r[0]}</td>
-          <td class="mono-code" style="color:var(--text-main); font-weight:600;">${r[1]}</td>
+          <td style="font-weight:500; color:var(--text-main);">${idx === 0 ? `${e.name} <span class="mono-code" style="font-size:11px; color:var(--text-dim);">(${e.code})</span>` : ""}</td>
+          <td>
+            <div style="display:flex; align-items:center; gap:8px;">
+              <span>${f.name}</span>
+              ${isMyElective ? '<span class="status-pill safe" style="font-size:10px; padding:2px 8px; border-radius:12px;">Assigned Mentor</span>' : ""}
+            </div>
+          </td>
+          <td class="mono-code" style="color:var(--text-main); font-weight:600;">${f.room}</td>
         `;
         tbody.appendChild(tr);
       });
