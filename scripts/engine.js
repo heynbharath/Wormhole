@@ -1192,65 +1192,82 @@ class WormholeApp {
     return;
   }
   try{
-    // Extract student name from heading
-    var sName='';
-    document.querySelectorAll('h1,h2,h3,h4,h5').forEach(function(el){
-      var t=el.innerText||el.textContent;
-      if(t.includes('Attendance Summary')){
-        sName=t.split('Attendance Summary').pop().replace(/of\s*Semester\s*\d+/i,'').trim();
-      }
-    });
-    if(!sName){
-      var uel=document.querySelector('.user-name,.student-name,[class*=username],[class*=user-info]');
-      if(uel)sName=uel.textContent.trim();
-    }
-
-    // Extract USN
-    var studentUsn='';
-    var usnM=document.body.innerText.match(/ENG\\\\d{2}[A-Z]{2}\\\\d{4}/i);
-    if(usnM)studentUsn=usnM[0].toUpperCase();
-
-    // Extract Section (A-L)
-    var studentSection='H';
-    var secM=document.body.innerText.match(/Section\\\\s*:\\\\s*([A-L])|Sec\\\\s*-\\\\s*([A-L])|Section\\\\s+([A-L])|CSE\\\\s*-\\\\s*([A-L])/i);
-    if(secM){
-      studentSection=(secM[1]||secM[2]||secM[3]||secM[4]).toUpperCase();
-    }
-
-    // Extract Lab Batch
-    var studentBatch=2;
-    var batchM=document.body.innerText.match(/Batch\\\\s*:\\\\s*([12])|Batch\\\\s+([12])|B([12])/i);
-    if(batchM){
-      studentBatch=parseInt(batchM[1]||batchM[2]||batchM[3],10)||2;
-    }
-
-    // Find attendance table
-    var attTable=null;
+    // ── Score-based table detection ──────────────────────────────────────
+    var kws=['conducted','present','absent','attendance'];
+    var bestTable=null,bestScore=0;
     document.querySelectorAll('table').forEach(function(t){
-      t.querySelectorAll('th').forEach(function(th){
-        if(th.textContent.trim().toLowerCase()==='conducted')attTable=t;
+      var score=0;
+      t.querySelectorAll('th,td').forEach(function(cell){
+        var txt=cell.textContent.trim().toLowerCase();
+        kws.forEach(function(kw){if(txt===kw)score++;});
       });
+      if(score>bestScore){bestScore=score;bestTable=t;}
     });
-    if(!attTable){alert('\u274c Cannot find attendance table.\nPlease navigate to Attendance Summary tab on ums.mydsi.org.');return;}
+    if(!bestTable||bestScore<2){alert('\u274c Cannot find attendance table.\nNavigate to Attendance Summary tab on ums.mydsi.org.');return;}
+
+    // ── Dynamic column map ───────────────────────────────────────────────
+    var colCourse=2,colConducted=3,colPresent=4,colAbsent=5,colSlot=1;
+    var hrow=bestTable.querySelector('thead tr,tr');
+    if(hrow){hrow.querySelectorAll('th,td').forEach(function(cell,i){
+      var txt=cell.textContent.trim().toLowerCase().replace(/\\s+/g,' ');
+      if(/course|subject/.test(txt))colCourse=i;
+      else if(txt==='conducted'||/total class/.test(txt))colConducted=i;
+      else if(txt==='present'||txt==='attended')colPresent=i;
+      else if(txt==='absent')colAbsent=i;
+      else if(/type|slot/.test(txt))colSlot=i;
+    });}
+
+    // ── Student info ─────────────────────────────────────────────────────
+    var bodyText=document.body.innerText||document.body.textContent;
+    var sName='';
+    var nameSelectors=['.student-name','.user-name','.username','.profile-name','[class*=student]','[class*=profile]','h1','h2','h3'];
+    for(var si=0;si<nameSelectors.length;si++){
+      var nel=document.querySelector(nameSelectors[si]);
+      if(nel){
+        var nt=(nel.innerText||nel.textContent).trim();
+        if(nt.length>2&&nt.length<80&&!/attendance|timetable|erp|portal/i.test(nt)){sName=nt.split('\\n')[0].trim();break;}
+      }
+    }
+    if(!sName){var nm=bodyText.match(/(?:welcome[,\\s]+|student\\s*name\\s*:\\s*|name\\s*:\\s*)([A-Z][a-z]+(?:\\s+[A-Z][a-z]+){1,4})/i);if(nm)sName=nm[1].trim();}
+
+    var studentUsn='';
+    var usnPatterns=[/\\b(ENG\\d{2}[A-Z]{2}\\d{4})\\b/i,/\\b(\\d{2}[A-Z]{2,4}\\d{3,5})\\b/,/USN\\s*[:\\-]?\\s*([A-Z0-9]{6,12})/i];
+    for(var ui=0;ui<usnPatterns.length;ui++){var um=bodyText.match(usnPatterns[ui]);if(um){studentUsn=um[1].toUpperCase();break;}}
+
+    var studentSection='';
+    var secPatterns=[/Section\\s*[:\\-]?\\s*([A-L])\\b/i,/Sec\\s*[:\\-]?\\s*([A-L])\\b/i,/CSE\\s*-\\s*([A-L])\\b/i];
+    for(var sci=0;sci<secPatterns.length;sci++){var sm=bodyText.match(secPatterns[sci]);if(sm){studentSection=sm[1].toUpperCase();break;}}
+
+    var studentBatch=0;
+    var bm=bodyText.match(/Batch\\s*[:\\-]?\\s*([12])\\b|B\\s*([12])\\b/i);
+    if(bm)studentBatch=parseInt(bm[1]||bm[2],10)||0;
+
+    // ── Parse course rows ────────────────────────────────────────────────
+    function getCellText(cells,idx){
+      if(idx<0||idx>=cells.length)return'';
+      return(cells[idx].innerText||cells[idx].textContent).replace(/\\s+/g,' ').trim();
+    }
     var courses=[],tc=0,tp=0;
-    attTable.querySelectorAll('tbody tr').forEach(function(row){
-      var c=row.querySelectorAll('td');
-      if(c.length<6)return;
-      var courseText=(c[2].innerText||c[2].textContent).trim();
-      var condText=(c[3].innerText||c[3].textContent).trim();
-      if(!courseText||courseText.toLowerCase()==='total'||!/\d/.test(condText))return;
+    bestTable.querySelectorAll('tbody tr').forEach(function(row){
+      var cells=row.querySelectorAll('td');
+      if(cells.length<3)return;
+      var courseText=getCellText(cells,colCourse);
+      var condText=getCellText(cells,colConducted);
+      if(!courseText||/^(course|subject|sl|sr|#|total|grand total)$/i.test(courseText))return;
+      if(!/\\d/.test(condText))return;
       var conducted=parseInt(condText)||0;
-      var present=parseInt((c[4].innerText||c[4].textContent).trim())||0;
-      var absent=parseInt((c[5].innerText||c[5].textContent).trim())||0;
-      var slotType=(c[1].innerText||c[1].textContent).trim();
-      var codeM=courseText.match(/^(24[A-Z]{2}\d{4})/);
-      var code=codeM?codeM[1]:courseText.substring(0,10).replace(/\s/g,'');
-      var name=courseText.replace(/^24[A-Z]{2}\d{4}\s*[-\u2013\u2014]?\s*/,'').trim()||courseText;
+      var present=parseInt(getCellText(cells,colPresent))||0;
+      var absent=colAbsent>=0?(parseInt(getCellText(cells,colAbsent))||0):(conducted-present);
+      var slotType=getCellText(cells,colSlot)||'Theory';
+      var codeM=courseText.match(/^(24[A-Z]{2,3}\\d{3,5})\\b/);
+      var code=codeM?codeM[1]:courseText.substring(0,10).replace(/\\s/g,'');
+      var name=courseText.replace(/^24[A-Z]{2,3}\\d{3,5}\\s*[-\u2013\u2014]?\\s*/,'').trim()||courseText;
       var pct=conducted>0?parseFloat(((present/conducted)*100).toFixed(2)):100;
       courses.push({code:code,name:name,type:slotType,conducted:conducted,present:present,absent:absent,pct:pct,faculty:''});
       tc+=conducted;tp+=present;
     });
-    if(!courses.length){alert('\u274c No course rows found. Navigate to Attendance Summary > Attendance Summary tab.');return;}
+    if(!courses.length){alert('\u274c No course rows found. Make sure you are on Attendance Summary tab and data is loaded.');return;}
+
     var overallPct=tc>0?parseFloat(((tp/tc)*100).toFixed(2)):100;
     var payload=JSON.stringify({
       student:{name:sName,usn:studentUsn,section:studentSection,labBatch:studentBatch,totalConducted:tc,totalPresent:tp,totalAbsent:tc-tp,overallPct:overallPct,syncedAt:new Date().toISOString()},
