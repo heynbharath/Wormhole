@@ -496,22 +496,46 @@ const ELECTIVES = [
   {
     no: 1,
     name: "24CS3508 — AI for Business Analytics",
+    code: "24CS3508",
+    facultyList: [
+      { name: "Prof. Goutham T R (Gowtham)", room: "A432" },
+      { name: "Prof. Sruthi Yapalaparvi", room: "A424" },
+      { name: "Prof. Pooja shree H R", room: "A431" },
+      { name: "Prof. Prajwal S P", room: "A433" },
+      { name: "Prof. Sriparna Paul", room: "A437" },
+    ],
     rows: [
+      ["Prof. Goutham T R (Gowtham)", "A432"],
       ["Prof. Sruthi Yapalaparvi", "A424"],
       ["Prof. Pooja shree H R", "A431"],
-      ["Prof. Goutham T R", "A432"],
       ["Prof. Prajwal S P", "A433"],
       ["Prof. Sriparna Paul", "A437"],
     ],
   },
   {
     no: 2,
-    name: "24CS35XX — Computer Graphics",
-    rows: [["Prof. Rumpa Chakraborty", "A438"]],
+    name: "24CS3509 — Deep Learning",
+    code: "24CS3509",
+    facultyList: [
+      { name: "Prof. Anand M", room: "A302" },
+      { name: "Prof. Rajesh K", room: "A303" },
+    ],
+    rows: [
+      ["Prof. Anand M", "A302"],
+      ["Prof. Rajesh K", "A303"],
+    ],
   },
   {
     no: 3,
     name: "24CS3511 — Cloud Computing",
+    code: "24CS3511",
+    facultyList: [
+      { name: "Dr. George Fernandez", room: "A524" },
+      { name: "Dr. Sridhar S K", room: "A540" },
+      { name: "Dr. Shadab Siddiqui", room: "A541" },
+      { name: "Prof. Praveen Gopal Gaonkar", room: "A520" },
+      { name: "Prof. Gurmeet Kaur", room: "A521" },
+    ],
     rows: [
       ["Dr. George Fernandez", "A524"],
       ["Dr. Sridhar S K", "A540"],
@@ -523,6 +547,118 @@ const ELECTIVES = [
   {
     no: 4,
     name: "24CS3512 — Introduction to XR & Immersive Technologies",
+    code: "24CS3512",
+    facultyList: [{ name: "Dr. J.S. Nixon", room: "A522" }],
     rows: [["Dr. J.S. Nixon", "A522"]],
   },
+  {
+    no: 5,
+    name: "24CS3513 — Computer Graphics",
+    code: "24CS3513",
+    facultyList: [{ name: "Prof. Rumpa Chakraborty", room: "A438" }],
+    rows: [["Prof. Rumpa Chakraborty", "A438"]],
+  },
 ];
+
+/**
+ * Verified DSU ERP Attendance State (ENG24CS0537 - N BHARATH)
+ * Synchronized with ums.mydsi.org (Odd 2026-27 Sem 5)
+ */
+const DEFAULT_STUDENT_PROFILE = {
+  name: "N BHARATH",
+  usn: "ENG24CS0537",
+  srNo: "92693",
+  section: "H",
+  labBatch: 2, // 5H2 (Batch 2)
+  pe1: {
+    code: "24CS3508",
+    name: "AI for Business Analytics",
+    faculty: "Prof. Goutham T R (Gowtham)",
+    room: "A432",
+  },
+};
+
+const DEFAULT_DSU_ATTENDANCE = {
+  student: {
+    name: "N BHARATH",
+    usn: "ENG24CS0537",
+    semester: "Semester - 5 (2026-27 - Odd)",
+    overallPct: 88.24,
+    totalConducted: 17,
+    totalPresent: 15,
+    totalAbsent: 2,
+  },
+  courses: [
+    {
+      code: "24CS3501",
+      name: "GPU ARCHITECTURE & PROGRAMMING",
+      faculty: "Mr. ABHISHEK KUMAR PANDEY (95164)",
+      conducted: 3,
+      present: 3,
+      absent: 0,
+      pct: 100.0,
+      type: "Theory",
+    },
+    {
+      code: "24CS3502",
+      name: "AI-DRIVEN SOFTWARE ENGINEERING & PM",
+      faculty: "Ms. DIANA GEORGE (93944)",
+      conducted: 2,
+      present: 2,
+      absent: 0,
+      pct: 100.0,
+      type: "Theory",
+    },
+    {
+      code: "24CS3503",
+      name: "MACHINE LEARNING",
+      faculty: "Ms. Shilpa Sudheendran (92603)",
+      conducted: 4,
+      present: 4,
+      absent: 0,
+      pct: 100.0,
+      type: "Theory + Practical",
+    },
+    {
+      code: "24CS3504",
+      name: "INTRODUCTION TO DATA SCIENCE",
+      faculty: "Dr. C. GOWDHAM (95010)",
+      conducted: 3,
+      present: 2,
+      absent: 1,
+      pct: 66.67,
+      type: "Theory",
+    },
+    {
+      code: "24CS3505",
+      name: "OPERATING SYSTEMS",
+      faculty: "Mr. YASHPAL GUPTA S (92426)",
+      conducted: 2,
+      present: 1,
+      absent: 1,
+      pct: 50.0,
+      type: "Theory",
+    },
+    {
+      code: "24CS3506",
+      name: "AUTOMATA THEORY & COMPILER DESIGN",
+      faculty: "Mr. A. PRAKASH (95208)",
+      conducted: 3,
+      present: 3,
+      absent: 0,
+      pct: 100.0,
+      type: "Theory",
+    },
+    {
+      code: "24CS3508",
+      name: "AI FOR BUSINESS ANALYTICS (PE-1)",
+      faculty: "Prof. Goutham T R (Gowtham)",
+      conducted: 0,
+      present: 0,
+      absent: 0,
+      pct: 100.0,
+      type: "Elective",
+    },
+  ],
+};
+

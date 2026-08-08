@@ -1,6 +1,6 @@
 /**
- * WORMHOLE Flagship Spacetime Engine
- * Multi-Section Squad Sync (2-8 batches), Live Quantum Radar Beacon, Command Palette (⌘K), & Magic URLs.
+ * WORMHOLE Flagship Spacetime Engine (v5.0)
+ * DSU ERP Live Attendance Sync, Student Personalization Profile, 75% Bunk Simulator & Multi-Section Hive.
  */
 
 function categorizePeriod(label) {
@@ -23,6 +23,13 @@ class WormholeApp {
     this.searchQuery = "";
     this.vortex = null;
     this.commandPaletteOpen = false;
+    this.attendanceModalOpen = false;
+    this.profileModalOpen = false;
+
+    // Load or initialize Student Profile & DSU Attendance
+    this.profile = this.loadProfile();
+    this.attendance = this.loadAttendance();
+    this.simulatedAttendance = JSON.parse(JSON.stringify(this.attendance));
 
     this.init();
   }
@@ -43,16 +50,384 @@ class WormholeApp {
     this.buildSectionPigeonholes();
     this.initICSExporter();
     this.initShareLink();
+    this.initWhatsAppBroadcaster();
     this.initSearch();
+    this.initProfileManager();
+    this.initAttendanceEngine();
 
     // 4. Render Initial Views
+    this.renderProfileBanner();
     this.renderChronosGrid();
     this.renderSquadSync();
     this.renderElectives();
     this.renderAnalytics();
+    this.renderAttendanceDashboard();
 
     // 5. Start Live Quantum Beacon Clock
     this.startLiveRadar();
+  }
+
+  /* ===================== STUDENT PROFILE MANAGEMENT ===================== */
+  loadProfile() {
+    try {
+      const saved = localStorage.getItem("wormhole_student_profile");
+      if (saved) return JSON.parse(saved);
+    } catch (e) {
+      console.warn("Could not load stored profile, using defaults", e);
+    }
+    return JSON.parse(JSON.stringify(DEFAULT_STUDENT_PROFILE));
+  }
+
+  saveProfile(newProfile) {
+    this.profile = { ...this.profile, ...newProfile };
+    try {
+      localStorage.setItem("wormhole_student_profile", JSON.stringify(this.profile));
+    } catch (e) {}
+    this.currentSection = this.profile.section;
+    this.renderProfileBanner();
+    this.buildSectionPigeonholes();
+    this.renderChronosGrid();
+    this.renderAnalytics();
+    this.renderSquadSync();
+  }
+
+  initProfileManager() {
+    const modal = document.getElementById("profileModal");
+    const closeBtn = document.getElementById("closeProfileModalBtn");
+    const saveBtn = document.getElementById("saveProfileBtn");
+
+    window.openProfileModal = () => {
+      WormholeAudio.tick();
+      this.profileModalOpen = true;
+      if (modal) modal.classList.add("open");
+
+      // Fill current values
+      const secSelect = document.getElementById("profileSectionSelect");
+      const batchSelect = document.getElementById("profileBatchSelect");
+      const electiveSelect = document.getElementById("profileElectiveSelect");
+      const facultySelect = document.getElementById("profileElectiveFacultySelect");
+
+      if (secSelect) secSelect.value = this.profile.section;
+      if (batchSelect) batchSelect.value = this.profile.labBatch;
+      if (electiveSelect) electiveSelect.value = this.profile.pe1.code;
+
+      this.updateElectiveFacultyOptions();
+    };
+
+    window.closeProfileModal = () => {
+      this.profileModalOpen = false;
+      if (modal) modal.classList.remove("open");
+    };
+
+    if (closeBtn) closeBtn.addEventListener("click", window.closeProfileModal);
+    if (modal) {
+      modal.addEventListener("click", (e) => {
+        if (e.target === modal) window.closeProfileModal();
+      });
+    }
+
+    const electiveSelect = document.getElementById("profileElectiveSelect");
+    if (electiveSelect) {
+      electiveSelect.addEventListener("change", () => this.updateElectiveFacultyOptions());
+    }
+
+    if (saveBtn) {
+      saveBtn.addEventListener("click", () => {
+        const sec = document.getElementById("profileSectionSelect").value;
+        const batch = parseInt(document.getElementById("profileBatchSelect").value, 10);
+        const electiveCode = document.getElementById("profileElectiveSelect").value;
+        const facultyVal = document.getElementById("profileElectiveFacultySelect").value;
+
+        const [facultyName, room] = facultyVal.split("||");
+        const electiveObj = ELECTIVES.find((e) => e.code === electiveCode) || ELECTIVES[0];
+
+        this.saveProfile({
+          section: sec,
+          labBatch: batch,
+          pe1: {
+            code: electiveCode,
+            name: electiveObj.name.split("—")[1]?.trim() || electiveObj.name,
+            faculty: facultyName || "Prof. Goutham T R (Gowtham)",
+            room: room || "A432",
+          },
+        });
+
+        WormholeAudio.resonance();
+        window.closeProfileModal();
+      });
+    }
+  }
+
+  updateElectiveFacultyOptions() {
+    const electiveSelect = document.getElementById("profileElectiveSelect");
+    const facultySelect = document.getElementById("profileElectiveFacultySelect");
+    if (!electiveSelect || !facultySelect) return;
+
+    const code = electiveSelect.value;
+    const electiveObj = ELECTIVES.find((e) => e.code === code) || ELECTIVES[0];
+    facultySelect.innerHTML = "";
+
+    (electiveObj.facultyList || []).forEach((f) => {
+      const opt = document.createElement("option");
+      opt.value = `${f.name}||${f.room}`;
+      opt.textContent = `${f.name} (Room ${f.room})`;
+      if (this.profile.pe1.faculty && f.name.includes(this.profile.pe1.faculty.split(" ")[1] || "")) {
+        opt.selected = true;
+      }
+      facultySelect.appendChild(opt);
+    });
+  }
+
+  renderProfileBanner() {
+    const nameEl = document.getElementById("profileStudentName");
+    const usnEl = document.getElementById("profileStudentUsn");
+    const secEl = document.getElementById("profileStudentSection");
+    const batchEl = document.getElementById("profileStudentBatch");
+    const pe1El = document.getElementById("profileStudentElective");
+
+    if (nameEl) nameEl.textContent = this.profile.name;
+    if (usnEl) usnEl.textContent = this.profile.usn;
+    if (secEl) secEl.textContent = `Section 5${this.profile.section}`;
+    if (batchEl) batchEl.textContent = `Batch 5${this.profile.section}${this.profile.labBatch}`;
+    if (pe1El) pe1El.textContent = `${this.profile.pe1.name} (${this.profile.pe1.faculty.split("(")[0].trim()})`;
+  }
+
+  /* ===================== DSU ERP ATTENDANCE SYNC ===================== */
+  loadAttendance() {
+    try {
+      const saved = localStorage.getItem("wormhole_dsu_attendance");
+      if (saved) return JSON.parse(saved);
+    } catch (e) {
+      console.warn("Could not load stored attendance, using defaults", e);
+    }
+    return JSON.parse(JSON.stringify(DEFAULT_DSU_ATTENDANCE));
+  }
+
+  saveAttendance(data) {
+    this.attendance = data;
+    this.simulatedAttendance = JSON.parse(JSON.stringify(data));
+    try {
+      localStorage.setItem("wormhole_dsu_attendance", JSON.stringify(data));
+    } catch (e) {}
+    this.renderAttendanceDashboard();
+    this.renderChronosGrid();
+  }
+
+  initAttendanceEngine() {
+    const modal = document.getElementById("attendanceModal");
+    const closeBtn = document.getElementById("closeAttendanceModalBtn");
+    const parseBtn = document.getElementById("parseAttendanceTextBtn");
+    const resetBtn = document.getElementById("resetAttendanceBtn");
+
+    window.openAttendanceModal = () => {
+      WormholeAudio.tick();
+      this.attendanceModalOpen = true;
+      if (modal) modal.classList.add("open");
+      this.renderAttendanceModalTable();
+    };
+
+    window.closeAttendanceModal = () => {
+      this.attendanceModalOpen = false;
+      if (modal) modal.classList.remove("open");
+    };
+
+    if (closeBtn) closeBtn.addEventListener("click", window.closeAttendanceModal);
+    if (modal) {
+      modal.addEventListener("click", (e) => {
+        if (e.target === modal) window.closeAttendanceModal();
+      });
+    }
+
+    if (parseBtn) {
+      parseBtn.addEventListener("click", () => {
+        const txt = document.getElementById("attendancePasteArea")?.value || "";
+        this.parseERPText(txt);
+      });
+    }
+
+    if (resetBtn) {
+      resetBtn.addEventListener("click", () => {
+        WormholeAudio.tick();
+        this.saveAttendance(JSON.parse(JSON.stringify(DEFAULT_DSU_ATTENDANCE)));
+        this.renderAttendanceModalTable();
+      });
+    }
+
+    // Bookmarklet generator
+    const bookmarkletBtn = document.getElementById("dsuBookmarkletLink");
+    if (bookmarkletBtn) {
+      const code = `javascript:(function(){
+        try {
+          var rows = document.querySelectorAll('table tbody tr');
+          var text = document.body.innerText;
+          alert('Wormhole: Attendance copied! Open Wormhole and click Sync DSU ERP to paste.');
+          navigator.clipboard.writeText(text);
+        } catch(e) { alert('Error reading DSU ERP: ' + e); }
+      })();`;
+      bookmarkletBtn.setAttribute("href", code);
+    }
+  }
+
+  parseERPText(text) {
+    if (!text.trim()) return;
+
+    const lines = text.split("\n").map((l) => l.trim()).filter(Boolean);
+    const courses = [];
+    let totalConducted = 0;
+    let totalPresent = 0;
+    let totalAbsent = 0;
+
+    // Look for course lines with 24CS35XX codes
+    lines.forEach((line) => {
+      const match = line.match(/(24CS35\d{2})\s*[-—]?\s*([A-Za-z &]+)/i);
+      if (match) {
+        const code = match[1].toUpperCase();
+        const name = match[2].trim();
+        // Look for numbers nearby
+        const nums = line.match(/\b\d+(\.\d+)?\b/g);
+        let conducted = 0,
+          present = 0,
+          absent = 0;
+        if (nums && nums.length >= 3) {
+          conducted = parseInt(nums[0], 10) || 0;
+          present = parseInt(nums[1], 10) || 0;
+          absent = parseInt(nums[2], 10) || 0;
+        }
+
+        const pct = conducted > 0 ? (present / conducted) * 100 : 100;
+        totalConducted += conducted;
+        totalPresent += present;
+        totalAbsent += absent;
+
+        courses.push({
+          code,
+          name,
+          conducted,
+          present,
+          absent,
+          pct: parseFloat(pct.toFixed(2)),
+          type: "Theory",
+        });
+      }
+    });
+
+    if (courses.length > 0) {
+      const overallPct = totalConducted > 0 ? (totalPresent / totalConducted) * 100 : 100;
+      this.saveAttendance({
+        student: {
+          ...this.attendance.student,
+          totalConducted,
+          totalPresent,
+          totalAbsent,
+          overallPct: parseFloat(overallPct.toFixed(2)),
+        },
+        courses,
+      });
+      WormholeAudio.resonance();
+      alert(`✓ Successfully synced ${courses.length} courses from DSU ERP!`);
+      this.renderAttendanceModalTable();
+    } else {
+      alert("Could not detect standard 24CS35XX format. Please check text or use default dataset.");
+    }
+  }
+
+  calculateHealth(conducted, present) {
+    const absent = conducted - present;
+    const pct = conducted > 0 ? (present / conducted) * 100 : 100;
+    const isSafe = pct >= 75.0;
+
+    // Buffer classes you can safely skip
+    const bunkBuffer = Math.max(0, Math.floor((present - 0.75 * conducted) / 0.75));
+
+    // Classes needed consecutively to cross 75%
+    const classesNeeded = Math.max(0, Math.ceil(3 * absent - present));
+
+    return {
+      pct: parseFloat(pct.toFixed(2)),
+      isSafe,
+      bunkBuffer,
+      classesNeeded,
+      status: pct >= 85 ? "EXCELLENT" : pct >= 75 ? "SAFE" : pct >= 65 ? "WARNING" : "CRITICAL",
+    };
+  }
+
+  renderAttendanceDashboard() {
+    const overallPctEl = document.getElementById("overallAttendancePct");
+    const overallConductedEl = document.getElementById("overallConductedSlots");
+    const overallPresentEl = document.getElementById("overallPresentSlots");
+    const overallAbsentEl = document.getElementById("overallAbsentSlots");
+    const statusBadgeEl = document.getElementById("overallAttendanceStatusBadge");
+
+    const st = this.attendance.student;
+    const health = this.calculateHealth(st.totalConducted, st.totalPresent);
+
+    if (overallPctEl) overallPctEl.textContent = `${health.pct}%`;
+    if (overallConductedEl) overallConductedEl.textContent = `${st.totalConducted} Slots`;
+    if (overallPresentEl) overallPresentEl.textContent = `${st.totalPresent} Present`;
+    if (overallAbsentEl) overallAbsentEl.textContent = `${st.totalAbsent} Absent`;
+
+    if (statusBadgeEl) {
+      statusBadgeEl.textContent = health.status;
+      statusBadgeEl.className = `status-pill ${health.isSafe ? "safe" : "danger"}`;
+      statusBadgeEl.style.color = health.isSafe ? "var(--free-text)" : "#EF4444";
+      statusBadgeEl.style.borderColor = health.isSafe ? "var(--free-border)" : "rgba(239, 68, 68, 0.4)";
+      statusBadgeEl.style.background = health.isSafe ? "var(--free-bg)" : "rgba(239, 68, 68, 0.1)";
+    }
+  }
+
+  renderAttendanceModalTable() {
+    const tbody = document.getElementById("attendanceModalTableBody");
+    if (!tbody) return;
+    tbody.innerHTML = "";
+
+    this.simulatedAttendance.courses.forEach((c, idx) => {
+      const h = this.calculateHealth(c.conducted, c.present);
+      const tr = document.createElement("tr");
+
+      const badgeColor = h.isSafe ? "var(--free-text)" : "#EF4444";
+      const adviceText = h.isSafe
+        ? `<span style="color:var(--free-text);">✓ Safe · Can skip <b>${h.bunkBuffer}</b> class${h.bunkBuffer === 1 ? "" : "es"}</span>`
+        : `<span style="color:#EF4444; font-weight:600;">🚨 Must attend next <b>${h.classesNeeded}</b> class${h.classesNeeded === 1 ? "" : "es"} for 75%</span>`;
+
+      tr.innerHTML = `
+        <td class="mono-code">${c.code}</td>
+        <td>
+          <div style="font-weight:600; color:var(--text-main);">${c.name}</div>
+          <div style="font-size:11px; color:var(--text-dim);">${c.faculty || ""}</div>
+        </td>
+        <td>${c.conducted}</td>
+        <td>${c.present}</td>
+        <td>${c.absent}</td>
+        <td style="font-family:var(--font-mono); font-weight:700; color:${badgeColor}; font-size:14px;">
+          ${h.pct}%
+        </td>
+        <td>${adviceText}</td>
+        <td style="white-space:nowrap;">
+          <div class="stepper-wrap">
+            <button class="step-btn step-minus" title="Simulate Missed Class" onclick="Wormhole.simulateClassChange(${idx}, 'miss')">-1</button>
+            <button class="step-btn step-plus" title="Simulate Attended Class" onclick="Wormhole.simulateClassChange(${idx}, 'attend')">+1</button>
+          </div>
+        </td>
+      `;
+      tbody.appendChild(tr);
+    });
+  }
+
+  simulateClassChange(courseIndex, action) {
+    WormholeAudio.tick();
+    const c = this.simulatedAttendance.courses[courseIndex];
+    if (!c) return;
+
+    if (action === "attend") {
+      c.conducted += 1;
+      c.present += 1;
+    } else if (action === "miss") {
+      c.conducted += 1;
+      c.absent += 1;
+    }
+
+    c.pct = parseFloat(((c.present / c.conducted) * 100).toFixed(2));
+    this.renderAttendanceModalTable();
   }
 
   /* ===================== URL HASH STATE SERIALIZATION ===================== */
@@ -67,7 +442,10 @@ class WormholeApp {
     }
     if (params.has("sec")) {
       const s = params.get("sec").toUpperCase();
-      if (SECTIONS[s]) this.currentSection = s;
+      if (SECTIONS[s]) {
+        this.currentSection = s;
+        this.profile.section = s;
+      }
     }
   }
 
@@ -89,6 +467,24 @@ class WormholeApp {
         setTimeout(() => {
           btn.innerHTML = "🔗 Share Squad Link";
         }, 2000);
+      });
+    });
+  }
+
+  initWhatsAppBroadcaster() {
+    const btn = document.getElementById("whatsappBroadcastBtn");
+    if (!btn) return;
+    btn.addEventListener("click", () => {
+      this.updateURLHash();
+      const squadNames = this.squad.map((k) => "5" + k).join(" + ");
+      const msg = `🚀 *WORMHOLE SQUAD COORDINATION* (${squadNames})\n\nHey squad! Here is our real-time free time overlap on campus:\n🔗 View Live Heatmap: ${window.location.href}\n\n⚡ Computed via Wormhole Spacetime Engine`;
+
+      navigator.clipboard.writeText(msg).then(() => {
+        WormholeAudio.resonance();
+        btn.textContent = "✓ WhatsApp Invite Copied!";
+        setTimeout(() => {
+          btn.innerHTML = "📲 Copy WhatsApp Invite";
+        }, 2500);
       });
     });
   }
@@ -130,6 +526,23 @@ class WormholeApp {
 
     const q = query.toLowerCase();
     const items = [];
+
+    // Profile & Attendance Quick Actions
+    items.push({
+      type: "Action",
+      title: "⚙️ Personalize Profile (Lab Batch & PE-1)",
+      sub: `Currently: 5${this.profile.section}${this.profile.labBatch} · ${this.profile.pe1.name}`,
+      badge: "PROFILE",
+      action: () => window.openProfileModal(),
+    });
+
+    items.push({
+      type: "Action",
+      title: `📊 DSU ERP Attendance Copilot (${this.attendance.student.overallPct}%)`,
+      sub: "View 75% bunk buffer & simulate future attendance",
+      badge: "ATTENDANCE",
+      action: () => window.openAttendanceModal(),
+    });
 
     // Search Sections
     Object.keys(SECTIONS).forEach((k) => {
@@ -176,32 +589,6 @@ class WormholeApp {
       });
     });
 
-    // Quick Actions
-    if (!q || "export ics calendar download".includes(q)) {
-      items.push({
-        type: "Action",
-        title: `Export Section 5${this.currentSection} Calendar (.ICS)`,
-        sub: "Sync timetable to Apple Calendar, Google Calendar or Outlook",
-        badge: "CALENDAR",
-        action: () => {
-          const exportBtn = document.getElementById("exportIcsBtn");
-          if (exportBtn) exportBtn.click();
-        },
-      });
-    }
-
-    if (!q || "squad compare sync".includes(q)) {
-      items.push({
-        type: "Action",
-        title: "Open Multi-Section Squad Sync",
-        sub: `Currently comparing ${this.squad.map((k) => "5" + k).join(" + ")}`,
-        badge: "SQUAD",
-        action: () => {
-          document.querySelector('[data-view="squad"]').click();
-        },
-      });
-    }
-
     if (items.length === 0) {
       results.innerHTML = `<div style="padding:24px; text-align:center; color:var(--text-dim); font-size:13px;">No results found for "${query}"</div>`;
       return;
@@ -237,55 +624,54 @@ class WormholeApp {
         return;
       }
 
-      if (e.key === "Escape" && this.commandPaletteOpen) {
-        window.closeCommandPalette();
+      if (e.key === "Escape") {
+        if (this.commandPaletteOpen) window.closeCommandPalette();
+        if (this.attendanceModalOpen) window.closeAttendanceModal();
+        if (this.profileModalOpen) window.closeProfileModal();
         return;
       }
 
-      if (e.target.tagName === "INPUT" || e.target.tagName === "SELECT") return;
+      if (e.target.tagName === "INPUT" || e.target.tagName === "SELECT" || e.target.tagName === "TEXTAREA") return;
 
       const key = e.key.toUpperCase();
 
       // Number keys 1-4 switch views
       if (["1", "2", "3", "4"].includes(key)) {
-        const views = ["squad", "chronos", "electives", "docs"];
-        const btn = document.querySelector(`[data-view="${views[Number(key) - 1]}"]`);
-        if (btn) btn.click();
+        const viewMap = { "1": "squad", "2": "chronos", "3": "electives", "4": "docs" };
+        const targetBtn = document.querySelector(`[data-view="${viewMap[key]}"]`);
+        if (targetBtn) targetBtn.click();
+        return;
       }
 
-      // Letter keys A-L switch section in Chronos
-      if (Object.keys(SECTIONS).includes(key)) {
-        WormholeAudio.tick();
-        this.currentSection = key;
-        this.updateURLHash();
-        this.buildSectionPigeonholes();
-        this.renderChronosGrid();
-        this.renderAnalytics();
-        const chronosTab = document.querySelector('[data-view="chronos"]');
-        if (chronosTab) chronosTab.click();
+      // Letter keys A-L switch section
+      if (SECTIONS[key]) {
+        this.switchSection(key);
+        return;
       }
 
-      // Space key toggles audio
+      // Space toggles audio
       if (e.code === "Space") {
         e.preventDefault();
+        WormholeAudio.toggle();
         const btn = document.getElementById("audioToggleBtn");
-        if (btn) btn.click();
+        if (btn) {
+          btn.innerHTML = WormholeAudio.enabled ? "🔊 Audio <span class='kbd-badge'>Space</span>" : "🔇 Muted <span class='kbd-badge'>Space</span>";
+        }
       }
     });
   }
 
-  /* ===================== NAVIGATION ===================== */
   initNavigation() {
     const tabs = document.querySelectorAll(".seg-btn");
     tabs.forEach((tab) => {
       tab.addEventListener("click", () => {
         WormholeAudio.tick();
         tabs.forEach((t) => t.classList.remove("active"));
-        document.querySelectorAll(".view-panel").forEach((p) => p.classList.remove("active"));
-
         tab.classList.add("active");
-        const target = tab.dataset.view;
-        const panel = document.getElementById("panel-" + target);
+
+        const targetView = tab.getAttribute("data-view");
+        document.querySelectorAll(".view-panel").forEach((p) => p.classList.remove("active"));
+        const panel = document.getElementById(`panel-${targetView}`);
         if (panel) panel.classList.add("active");
       });
     });
@@ -294,109 +680,84 @@ class WormholeApp {
   initAudioToggle() {
     const btn = document.getElementById("audioToggleBtn");
     if (!btn) return;
-
-    const updateBtn = () => {
-      const isMuted = WormholeAudio.isMuted();
-      btn.innerHTML = isMuted ? `🔇 Muted` : `🔊 Audio`;
-    };
-
-    updateBtn();
     btn.addEventListener("click", () => {
-      WormholeAudio.toggleMute();
-      updateBtn();
-      if (!WormholeAudio.isMuted()) WormholeAudio.tick();
+      WormholeAudio.toggle();
+      btn.innerHTML = WormholeAudio.enabled ? "🔊 Audio <span class='kbd-badge'>Space</span>" : "🔇 Muted <span class='kbd-badge'>Space</span>";
     });
   }
 
-  /* ===================== LIVE QUANTUM BEACON RADAR ===================== */
+  /* ===================== QUANTUM RADAR BEACON ===================== */
   startLiveRadar() {
-    const clockEl = document.getElementById("liveClockTime");
-    const statusEl = document.getElementById("livePeriodStatus");
-    const countdownEl = document.getElementById("beaconCountdown");
-    const freeSectionsList = document.getElementById("beaconFreeSections");
-
     const tickClock = () => {
       const now = new Date();
-      const hours = String(now.getHours()).padStart(2, "0");
-      const minutes = String(now.getMinutes()).padStart(2, "0");
-      const seconds = String(now.getSeconds()).padStart(2, "0");
-      if (clockEl) clockEl.textContent = `${hours}:${minutes}:${seconds}`;
+      const timeStr = now.toLocaleTimeString([], { hour12: false });
+      const clockEl = document.getElementById("liveClockTime");
+      if (clockEl) clockEl.textContent = timeStr;
 
-      const dayIndex = now.getDay();
-      const currentDayName = DAYS[dayIndex - 1];
+      const currentDay = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"][now.getDay()];
+      const curMins = now.getHours() * 60 + now.getMinutes();
+      const curSecs = now.getSeconds();
 
-      let activePeriod = null;
-      let remainingSec = 0;
-      const currentTotalSec = now.getHours() * 3600 + now.getMinutes() * 60 + now.getSeconds();
-      const currentTotalMin = now.getHours() * 60 + now.getMinutes();
+      // Find current period
+      let activeP = null;
+      let activePIndex = -1;
+      let minsRemaining = 0;
+      let secsRemaining = 0;
 
-      PERIODS.forEach((p) => {
+      PERIODS.forEach((p, idx) => {
         const [sh, sm] = p.start.split(":").map(Number);
         const [eh, em] = p.end.split(":").map(Number);
-        const startSec = sh * 3600 + sm * 60;
-        const endSec = eh * 3600 + em * 60;
+        const sTotal = sh * 60 + sm;
+        const eTotal = eh * 60 + em;
 
-        if (currentTotalSec >= startSec && currentTotalSec < endSec) {
-          activePeriod = p;
-          remainingSec = endSec - currentTotalSec;
+        if (curMins >= sTotal && curMins < eTotal) {
+          activeP = p;
+          activePIndex = idx;
+          const totalSecsRemaining = (eTotal - curMins) * 60 - curSecs;
+          minsRemaining = Math.floor(totalSecsRemaining / 60);
+          secsRemaining = totalSecsRemaining % 60;
         }
       });
 
-      // Update Live Period Countdown HUD
-      if (countdownEl) {
-        if (activePeriod) {
-          const remMin = Math.floor(remainingSec / 60);
-          const remSec = remainingSec % 60;
-          countdownEl.textContent = `${remMin}m ${String(remSec).padStart(2, "0")}s left`;
-        } else {
-          countdownEl.textContent = "Outside Academic Hours";
-        }
-      }
+      const statusEl = document.getElementById("livePeriodStatus");
+      const countdownEl = document.getElementById("beaconCountdown");
+      const freeSectionsEl = document.getElementById("beaconFreeSections");
 
-      if (statusEl) {
-        if (dayIndex === 0) {
-          statusEl.textContent = "Sunday · Off Grid";
-        } else if (activePeriod) {
-          statusEl.textContent = `Period ${activePeriod.id + 1} (${activePeriod.displayStart} – ${activePeriod.displayEnd})`;
-        } else if (currentTotalMin >= 10 * 60 + 20 && currentTotalMin < 10 * 60 + 45) {
-          statusEl.textContent = "Short Break Interval";
-        } else if (currentTotalMin >= 12 * 60 + 35 && currentTotalMin < 13 * 60 + 50) {
-          statusEl.textContent = "Midday Lunch Interval";
-        } else {
-          statusEl.textContent = "Campus Dormant";
-        }
-      }
+      if (activeP) {
+        if (statusEl) statusEl.textContent = `${activeP.label} (${activeP.displayStart} – ${activeP.displayEnd})`;
+        if (countdownEl) countdownEl.textContent = `${minsRemaining}m ${secsRemaining < 10 ? "0" : ""}${secsRemaining}s left in ${activeP.label}`;
 
-      // Scanner: Which sections are currently 100% FREE right now?
-      if (freeSectionsList && currentDayName && activePeriod !== null) {
-        const freeSecs = [];
-        Object.keys(SECTIONS).forEach((secKey) => {
-          const sub = SECTIONS[secKey].days[currentDayName][activePeriod.id];
-          if (categorizePeriod(sub) === "free") {
-            freeSecs.push({ key: secKey, sub });
+        // Scan who is 100% Free Right Now across campus
+        if (freeSectionsEl && currentDay !== "Sunday") {
+          const freeSecs = [];
+          Object.keys(SECTIONS).forEach((k) => {
+            const label = SECTIONS[k].days[currentDay]?.[activePIndex];
+            if (categorizePeriod(label) === "free") {
+              freeSecs.push(`5${k} (${label})`);
+            }
+          });
+
+          if (freeSecs.length > 0) {
+            freeSectionsEl.innerHTML = freeSecs
+              .map((s) => `<span class="beacon-chip" onclick="Wormhole.switchSection('${s[1]}')">● Section ${s}</span>`)
+              .join("");
+          } else {
+            freeSectionsEl.innerHTML = `<span style="color:var(--text-dim); font-size:12px;">All 12 sections currently in class</span>`;
           }
-        });
-
-        if (freeSecs.length > 0) {
-          freeSectionsList.innerHTML = freeSecs
-            .map(
-              (f) => `
-              <span class="beacon-chip" onclick="window.Wormhole.switchSection('${f.key}')" title="Currently has ${f.sub}">
-                <span class="status-dot"></span> 5${f.key} (${f.sub})
-              </span>
-            `
-            )
-            .join("");
-        } else {
-          freeSectionsList.innerHTML = `<span style="color:var(--text-dim); font-size:12px;">All 12 sections currently in fixed classes or labs.</span>`;
+        }
+      } else {
+        if (statusEl) statusEl.textContent = "Outside Lecture Hours";
+        if (countdownEl) countdownEl.textContent = "Next period starts 08:30 AM";
+        if (freeSectionsEl) {
+          freeSectionsEl.innerHTML = `<span style="color:var(--free-text); font-size:12px; font-weight:600;">Campus Wide Free Space</span>`;
         }
       }
 
-      // Highlight active cell in current section grid
-      document.querySelectorAll(".cell-slot").forEach((c) => c.classList.remove("active-period"));
-      if (currentDayName && activePeriod !== null) {
+      // Highlight active cell in matrix
+      document.querySelectorAll(".cell-slot.active-period").forEach((el) => el.classList.remove("active-period"));
+      if (activePIndex !== -1 && currentDay !== "Sunday") {
         const activeCell = document.querySelector(
-          `[data-day="${currentDayName}"][data-period="${activePeriod.id}"]`
+          `#chronosTimetable td[data-day="${currentDay}"][data-period="${activePIndex}"]`
         );
         if (activeCell) activeCell.classList.add("active-period");
       }
@@ -484,7 +845,6 @@ class WormholeApp {
     // Calculate N-way set intersection
     const windows = [];
     let sharedFreeSlotsCount = 0;
-    let totalSlots = 6 * 7; // 42 slots
 
     DAYS.forEach((day) => {
       let i = 0;
@@ -617,7 +977,7 @@ class WormholeApp {
     return html;
   }
 
-  /* ===================== CHRONOS MATRIX (Single Section) ===================== */
+  /* ===================== CHRONOS MATRIX (Single Section & Personalization) ===================== */
   buildSectionPigeonholes() {
     const container = document.getElementById("sectionPigeonholes");
     if (!container) return;
@@ -638,6 +998,61 @@ class WormholeApp {
       });
       container.appendChild(pill);
     });
+  }
+
+  resolveCellSlot(rawLabel, day, periodIndex) {
+    if (!rawLabel) return { text: "", cat: "fixed", tag: "", healthTag: "" };
+
+    let text = rawLabel;
+    let cat = categorizePeriod(rawLabel);
+    let subInfo = "";
+
+    // 1. Resolve PE-1 Elective Personalization
+    if (rawLabel.includes("PE-1")) {
+      text = `${this.profile.pe1.name} (${this.profile.pe1.room})`;
+      subInfo = this.profile.pe1.faculty;
+      cat = "skiphigh";
+    }
+
+    // 2. Resolve Lab Batch Personalization (e.g. ML-H1/GPU-H2 (514/509))
+    if (rawLabel.includes("/")) {
+      const isBatch2 = this.profile.labBatch === 2;
+      if (rawLabel.includes("ML-H1/GPU-H2")) {
+        text = isBatch2 ? "GPU Programming Lab (509)" : "Machine Learning Lab (514)";
+        subInfo = isBatch2 ? "Batch 5H2 · Room 509" : "Batch 5H1 · Room 514";
+      } else if (rawLabel.includes("ML-H2/GPU-H1")) {
+        text = isBatch2 ? "Machine Learning Lab (514)" : "GPU Programming Lab (509)";
+        subInfo = isBatch2 ? "Batch 5H2 · Room 514" : "Batch 5H1 · Room 509";
+      } else if (rawLabel.includes("ML-A1/GPU-A2")) {
+        text = isBatch2 ? "GPU Architecture Lab (508)" : "Machine Learning Lab (513)";
+      } else if (rawLabel.includes("ML-A2/GPU-A1")) {
+        text = isBatch2 ? "Machine Learning Lab (513)" : "GPU Architecture Lab (508)";
+      }
+    }
+
+    // 3. Match with DSU ERP Attendance stats
+    let healthTag = "";
+    if (this.attendance && this.attendance.courses) {
+      let matchedCourse = null;
+      const tUpper = rawLabel.toUpperCase();
+      if (tUpper.includes("GPU")) matchedCourse = this.attendance.courses.find((c) => c.code === "24CS3501");
+      else if (tUpper.includes("SEMP") || tUpper.includes("SEPM")) matchedCourse = this.attendance.courses.find((c) => c.code === "24CS3502");
+      else if (tUpper.includes("ML") || tUpper.includes("MACHINE")) matchedCourse = this.attendance.courses.find((c) => c.code === "24CS3503");
+      else if (tUpper.includes("IDS") || tUpper.includes("DATA")) matchedCourse = this.attendance.courses.find((c) => c.code === "24CS3504");
+      else if (tUpper.includes("OS")) matchedCourse = this.attendance.courses.find((c) => c.code === "24CS3505");
+      else if (tUpper.includes("ATC") || tUpper.includes("AUTOMATA")) matchedCourse = this.attendance.courses.find((c) => c.code === "24CS3506");
+
+      if (matchedCourse) {
+        const h = this.calculateHealth(matchedCourse.conducted, matchedCourse.present);
+        if (!h.isSafe) {
+          healthTag = `<span class="attendance-tag danger animate-pulse" title="${h.pct}% · Must attend next ${h.classesNeeded} classes">🚨 ${h.pct}% (${h.classesNeeded} req)</span>`;
+        } else if (h.bunkBuffer > 0) {
+          healthTag = `<span class="attendance-tag safe" title="${h.pct}% · Safe buffer: ${h.bunkBuffer} classes">🟢 ${h.pct}%</span>`;
+        }
+      }
+    }
+
+    return { text, cat, subInfo, healthTag };
   }
 
   renderChronosGrid() {
@@ -669,16 +1084,20 @@ class WormholeApp {
     DAYS.forEach((day) => {
       html += `<tr><td class="day-cell">${day.substring(0, 3)}</td>`;
       for (let i = 0; i < 7; i++) {
-        const label = secData.days[day][i];
-        const cat = categorizePeriod(label);
-        const badge = CAT_LABELS[cat]
-          ? `<span class="cell-tag">${CAT_LABELS[cat]}</span>`
+        const rawLabel = secData.days[day][i];
+        const res = this.resolveCellSlot(rawLabel, day, i);
+        const badge = CAT_LABELS[res.cat]
+          ? `<span class="cell-tag">${CAT_LABELS[res.cat]}</span>`
           : "";
 
         html += `
-          <td class="cell-slot cat-${cat}" data-day="${day}" data-period="${i}">
-            <div class="cell-name">${label}</div>
-            ${badge}
+          <td class="cell-slot cat-${res.cat}" data-day="${day}" data-period="${i}">
+            <div class="cell-name">${res.text}</div>
+            ${res.subInfo ? `<div style="font-size:10px; color:var(--text-dim); margin-top:2px;">${res.subInfo}</div>` : ""}
+            <div style="display:flex; align-items:center; gap:4px; flex-wrap:wrap; margin-top:4px;">
+              ${badge}
+              ${res.healthTag}
+            </div>
           </td>
         `;
 

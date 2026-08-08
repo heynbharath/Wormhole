@@ -1,911 +1,417 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>5th Sem CSE — Register</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,700;1,9..144,500&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-<style>
-  :root{
-    --paper:#E7E4D8;
-    --paper-2:#DEDACB;
-    --card:#F3F1E7;
-    --ink:#1C2541;
-    --ink-soft:#4B5075;
-    --ink-faint:#8A8E9E;
-    --brass:#A97D3D;
-    --brass-deep:#7C5A28;
-    --free:#2F6B4F;
-    --free-bg:#DCEBE1;
-    --skiphigh:#9C5B10;
-    --skiphigh-bg:#F1E1C6;
-    --skiplow:#8A6A1E;
-    --skiplow-bg:#EFE8CE;
-    --locked:#8B3A3A;
-    --locked-bg:#EAD9D4;
-    --line:#C9C4B0;
-    --line-strong:#B0AB94;
-    --radius:3px;
-  }
-  *{box-sizing:border-box;}
-  html{scroll-behavior:smooth;}
-  body{
-    margin:0;
-    background:
-      repeating-linear-gradient(180deg, transparent, transparent 27px, rgba(28,37,65,0.045) 28px),
-      var(--paper);
-    color:var(--ink);
-    font-family:'IBM Plex Sans', sans-serif;
-    -webkit-font-smoothing:antialiased;
-  }
-  a{color:inherit;}
-  .wrap{max-width:1180px;margin:0 auto;padding:0 22px 90px;}
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Wormhole — Autonomous Spacetime Coordination Engine</title>
+  <meta name="description" content="YC-grade autonomous spacetime coordination operating system for university schedules, multi-section squad sync, DSU ERP attendance bunk simulation, and profile personalization.">
 
-  /* ===== HEADER / LETTERHEAD ===== */
-  header.letterhead{
-    border-bottom:3px double var(--ink);
-    padding:34px 22px 22px;
-    max-width:1180px;
-    margin:0 auto;
-  }
-  .letterhead-row{
-    display:flex;
-    align-items:center;
-    gap:22px;
-  }
-  .seal{
-    width:64px;height:64px;flex:0 0 64px;
-    border-radius:50%;
-    border:2px solid var(--ink);
-    display:flex;align-items:center;justify-content:center;
-    position:relative;
-    background:radial-gradient(circle at 35% 30%, #fff5e0, var(--brass) 78%);
-  }
-  .seal:before{
-    content:"";
-    position:absolute;inset:6px;
-    border:1px dashed var(--ink);
-    border-radius:50%;
-  }
-  .seal span{
-    font-family:'Fraunces', serif;
-    font-weight:700;
-    font-size:15px;
-    color:var(--ink);
-    letter-spacing:0.5px;
-  }
-  .letterhead h1{
-    font-family:'Fraunces', serif;
-    font-weight:700;
-    font-size:clamp(28px,4.4vw,42px);
-    margin:0 0 2px;
-    letter-spacing:-0.5px;
-  }
-  .letterhead .sub{
-    font-family:'IBM Plex Mono', monospace;
-    font-size:12.5px;
-    text-transform:uppercase;
-    letter-spacing:1.4px;
-    color:var(--ink-soft);
-  }
-  .letterhead .file-tag{
-    margin-left:auto;
-    text-align:right;
-    font-family:'IBM Plex Mono', monospace;
-    font-size:11px;
-    color:var(--ink-faint);
-    line-height:1.6;
-  }
+  <!-- Google Fonts: Inter & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
 
-  /* ===== NAV ===== */
-  nav.tabs{
-    display:flex;
-    gap:0;
-    margin:28px auto 0;
-    max-width:1180px;
-    padding:0 22px;
-    flex-wrap:wrap;
-  }
-  .navbtn{
-    font-family:'IBM Plex Mono', monospace;
-    font-size:12px;
-    letter-spacing:0.6px;
-    text-transform:uppercase;
-    background:none;
-    border:1px solid var(--ink);
-    border-right:none;
-    padding:10px 16px;
-    cursor:pointer;
-    color:var(--ink-soft);
-  }
-  nav.tabs .navbtn:last-child{border-right:1px solid var(--ink);}
-  .navbtn.active{background:var(--ink);color:var(--paper);}
-  .navbtn:hover:not(.active){background:rgba(28,37,65,0.08);}
-
-  section.view{display:none;padding-top:26px;}
-  section.view.active{display:block;}
-
-  /* ===== SECTION PICKER (pigeonhole tags) ===== */
-  .pigeonholes{
-    display:flex;flex-wrap:wrap;gap:8px;margin:6px 0 26px;
-  }
-  .tag{
-    font-family:'Fraunces', serif;
-    font-weight:600;
-    font-size:15px;
-    padding:8px 14px 7px;
-    background:var(--card);
-    border:1px solid var(--line-strong);
-    border-radius:var(--radius);
-    cursor:pointer;
-    position:relative;
-    color:var(--ink-soft);
-    box-shadow:2px 2px 0 rgba(28,37,65,0.06);
-  }
-  .tag small{display:block;font-family:'IBM Plex Mono',monospace;font-weight:400;font-size:9.5px;letter-spacing:0.5px;color:var(--ink-faint);margin-top:1px;}
-  .tag.active{
-    background:var(--ink);color:#fff;border-color:var(--ink);
-    box-shadow:2px 2px 0 var(--brass);
-  }
-  .tag.active small{color:#cfd3e8;}
-
-  .panel-title{
-    font-family:'Fraunces', serif;
-    font-weight:700;
-    font-size:26px;
-    margin:0 0 2px;
-  }
-  .panel-meta{
-    font-family:'IBM Plex Mono', monospace;
-    font-size:12.5px;
-    color:var(--ink-soft);
-    margin-bottom:18px;
-    display:flex;gap:18px;flex-wrap:wrap;
-  }
-  .panel-meta b{color:var(--ink);}
-
-  /* ===== TIMETABLE GRID ===== */
-  .grid-scroll{overflow-x:auto;border:1px solid var(--ink);background:var(--card);}
-  table.tt{border-collapse:collapse;width:100%;min-width:900px;}
-  table.tt th, table.tt td{border:1px solid var(--line);padding:0;text-align:left;vertical-align:top;}
-  table.tt thead th{
-    background:var(--ink);color:var(--paper);
-    font-family:'IBM Plex Mono',monospace;
-    font-size:10.5px;letter-spacing:0.4px;text-transform:uppercase;
-    padding:9px 8px;font-weight:500;
-  }
-  table.tt thead th .t{display:block;font-size:9.5px;color:#c3c7dc;margin-top:2px;font-weight:400;}
-  table.tt th.daycol, table.tt td.daycol{
-    background:var(--paper-2);
-    font-family:'Fraunces',serif;font-weight:600;font-size:14px;
-    padding:10px 12px;white-space:nowrap;
-  }
-  th.breakcol, td.breakcol{
-    background:repeating-linear-gradient(135deg,var(--paper-2),var(--paper-2) 4px,#d3cfbd 4px,#d3cfbd 8px);
-    width:22px;min-width:22px;
-  }
-  td.cell{padding:7px 8px;font-size:12.5px;position:relative;min-width:118px;}
-  .cell .lbl{font-family:'IBM Plex Sans';font-weight:600;font-size:12.5px;line-height:1.25;color:var(--ink);}
-  .stamp{
-    display:inline-block;
-    margin-top:5px;
-    font-family:'IBM Plex Mono',monospace;
-    font-size:9px;font-weight:600;letter-spacing:0.8px;text-transform:uppercase;
-    padding:1.5px 6px;
-    border:1.3px solid currentColor;
-    border-radius:2px;
-    transform:rotate(-3deg);
-  }
-  .cat-free .stamp{color:var(--free);}
-  .cat-skiphigh .stamp{color:var(--skiphigh);}
-  .cat-skiplow .stamp{color:var(--skiplow);}
-  .cat-office .stamp{color:var(--locked);}
-  td.cell.cat-free{background:var(--free-bg);}
-  td.cell.cat-skiphigh{background:var(--skiphigh-bg);}
-  td.cell.cat-skiplow{background:var(--skiplow-bg);}
-  td.cell.cat-office{background:var(--locked-bg);}
-  td.cell.cat-fixed{background:var(--card);}
-  td.cell.cat-soft{background:var(--card);color:var(--ink-faint);}
-
-  .legend{display:flex;flex-wrap:wrap;gap:14px;margin:14px 0 6px;font-family:'IBM Plex Mono',monospace;font-size:11px;}
-  .legend span{display:inline-flex;align-items:center;gap:6px;}
-  .swatch{width:11px;height:11px;border-radius:2px;display:inline-block;border:1px solid rgba(0,0,0,0.25);}
-
-  /* ===== COURSE TABLE ===== */
-  .courses{margin-top:34px;}
-  h2.section-h{
-    font-family:'Fraunces',serif;font-weight:700;font-size:19px;
-    border-bottom:1.5px solid var(--ink);padding-bottom:6px;margin:0 0 12px;
-  }
-  table.courses-tbl{width:100%;border-collapse:collapse;background:var(--card);border:1px solid var(--line-strong);}
-  table.courses-tbl th{
-    text-align:left;background:var(--paper-2);font-family:'IBM Plex Mono',monospace;
-    font-size:10.5px;text-transform:uppercase;letter-spacing:0.5px;padding:8px 10px;border:1px solid var(--line);
-  }
-  table.courses-tbl td{padding:9px 10px;border:1px solid var(--line);font-size:13px;vertical-align:top;}
-  table.courses-tbl td.code{font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:var(--ink-soft);white-space:nowrap;}
-  table.courses-tbl tr.lab td{background:rgba(169,125,61,0.07);font-size:12px;color:var(--ink-soft);}
-  table.courses-tbl tr.lab td.code{padding-left:22px;}
-
-  /* ===== COMPARE VIEW ===== */
-  .compare-controls{display:flex;gap:20px;align-items:flex-end;flex-wrap:wrap;margin-bottom:22px;}
-  .select-block label{display:block;font-family:'IBM Plex Mono',monospace;font-size:10.5px;text-transform:uppercase;letter-spacing:0.6px;color:var(--ink-soft);margin-bottom:5px;}
-  select{
-    font-family:'Fraunces',serif;font-weight:600;font-size:16px;
-    background:var(--card);border:1px solid var(--ink);padding:8px 12px;border-radius:var(--radius);color:var(--ink);
-  }
-  .versus{font-family:'Fraunces',serif;font-style:italic;font-size:20px;color:var(--brass-deep);padding-bottom:8px;}
-
-  .daily-anchors{
-    display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px;margin:22px 0 30px;
-  }
-  .anchor-card{
-    border:1px solid var(--line-strong);background:var(--card);padding:14px 16px;border-radius:var(--radius);
-  }
-  .anchor-card .k{font-family:'IBM Plex Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:0.6px;color:var(--ink-faint);}
-  .anchor-card .v{font-family:'Fraunces',serif;font-weight:700;font-size:17px;margin-top:3px;}
-  .anchor-card .d{font-size:12px;color:var(--ink-soft);margin-top:2px;}
-
-  .rank-list{list-style:none;margin:0;padding:0;}
-  .rank-item{
-    display:flex;gap:14px;align-items:center;
-    border:1px solid var(--line-strong);background:var(--card);
-    padding:13px 16px;margin-bottom:9px;border-radius:var(--radius);
-  }
-  .rank-num{
-    font-family:'Fraunces',serif;font-weight:700;font-size:20px;color:var(--brass-deep);
-    width:28px;flex:0 0 28px;
-  }
-  .rank-body{flex:1;}
-  .rank-when{font-family:'Fraunces',serif;font-weight:600;font-size:15.5px;}
-  .rank-why{font-size:12.5px;color:var(--ink-soft);margin-top:2px;}
-  .rank-score{font-family:'IBM Plex Mono',monospace;font-size:10px;text-transform:uppercase;padding:4px 9px;border-radius:2px;white-space:nowrap;}
-  .score-3{background:var(--free-bg);color:var(--free);}
-  .score-2{background:var(--skiphigh-bg);color:var(--skiphigh);}
-  .score-1{background:var(--skiplow-bg);color:var(--skiplow);}
-
-  footer{
-    text-align:center;font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--ink-faint);
-    padding:40px 20px 10px;
-  }
-
-  @media(max-width:640px){
-    .letterhead-row{flex-wrap:wrap;}
-    .file-tag{margin-left:0;text-align:left;}
-    .panel-title{font-size:21px;}
-  }
-
-  :focus-visible{outline:2.5px solid var(--brass-deep);outline-offset:2px;}
-</style>
+  <!-- Obsidian Void Design System -->
+  <link rel="stylesheet" href="styles/main.css">
+  <link rel="stylesheet" href="styles/components.css">
 </head>
 <body>
 
-<header class="letterhead">
-  <div class="letterhead-row">
-    <div class="seal"><span>5th</span></div>
-    <div>
-      <h1>Department Register — Sem 5</h1>
-      <div class="sub">Dayananda Sagar University · School of Engineering · CSE · Odd 2026–27</div>
-    </div>
-    <div class="file-tag">TT VERSION 3.0<br>ISSUED 08&nbsp;AUG&nbsp;2026</div>
-  </div>
-</header>
+  <!-- Navigation Bar -->
+  <header class="app-nav">
+    <div class="container nav-layout">
+      <a href="#" class="brand-wrap">
+        <div class="brand-icon">⚡</div>
+        <span>WORMHOLE</span>
+        <span class="badge-version">v5.0 FLAGSHIP</span>
+      </a>
 
-<nav class="tabs">
-  <button class="navbtn active" data-view="sync">Sync Finder</button>
-  <button class="navbtn" data-view="section">Section Timetable</button>
-  <button class="navbtn" data-view="electives">Electives</button>
-</nav>
-
-<div class="wrap">
-
-  <!-- ===================== SYNC FINDER VIEW ===================== -->
-  <section class="view active" id="view-sync">
-    <p class="panel-meta" style="margin-top:18px;">Pick any two sections — the register will surface every window where both of you are free or can reasonably skip.</p>
-
-    <div class="compare-controls">
-      <div class="select-block">
-        <label>Section A</label>
-        <select id="secA"></select>
-      </div>
-      <div class="versus">×</div>
-      <div class="select-block">
-        <label>Section B</label>
-        <select id="secB"></select>
+      <div class="nav-controls">
+        <button class="nav-btn" onclick="openProfileModal()">
+          <span>👤</span> <span id="profileNavTag">Profile: 5H2</span>
+        </button>
+        <button class="nav-btn" onclick="openAttendanceModal()">
+          <span>📊</span> <span id="attendanceNavTag">DSU ERP Sync</span>
+        </button>
+        <button class="nav-btn" onclick="openCommandPalette()">
+          <span>⌘K</span> <span style="display:none;" class="kbd-badge">Palette</span>
+        </button>
+        <button id="audioToggleBtn" class="nav-btn">
+          🔊 Audio <span class="kbd-badge">Space</span>
+        </button>
       </div>
     </div>
+  </header>
 
-    <h2 class="section-h">Guaranteed daily windows — no timetable check needed</h2>
-    <div class="daily-anchors">
-      <div class="anchor-card"><div class="k">Every day</div><div class="v">Before 8:30 AM</div><div class="d">Whenever you both arrive on campus.</div></div>
-      <div class="anchor-card"><div class="k">Every day · 25 min</div><div class="v">10:20 – 10:45 AM</div><div class="d">Short break, university-wide.</div></div>
-      <div class="anchor-card"><div class="k">Every day · 75 min — longest daily overlap</div><div class="v">12:35 – 1:50 PM</div><div class="d">Lunch break, university-wide.</div></div>
-    </div>
-
-    <h2 class="section-h" id="rankHeading">Best class-time windows, Monday–Saturday</h2>
-    <ol class="rank-list" id="rankList"></ol>
-
-    <h2 class="section-h" style="margin-top:34px;">Legend</h2>
-    <div class="legend">
-      <span><span class="swatch" style="background:var(--free-bg);border-color:var(--free)"></span> Fully free — MOOC / Sports / Library / Mentor / Office</span>
-      <span><span class="swatch" style="background:var(--skiphigh-bg);border-color:var(--skiphigh)"></span> Skippable, higher priority — PE-1</span>
-      <span><span class="swatch" style="background:var(--skiplow-bg);border-color:var(--skiplow)"></span> Skippable, lower priority — CTS</span>
-      <span><span class="swatch" style="background:var(--locked-bg);border-color:var(--locked)"></span> Unavailable — core class / lab / Soft Skill</span>
-    </div>
-
-    <h2 class="section-h" style="margin-top:34px;">Full week, both sections overlaid</h2>
-    <div class="grid-scroll">
-      <table class="tt" id="compareTable"></table>
+  <!-- Hero Canvas & Mission Header -->
+  <section class="hero-wrapper">
+    <canvas id="vortexCanvas"></canvas>
+    <div class="container hero-body">
+      <div class="hero-badge">
+        <span class="status-dot"></span>
+        Autonomous Spacetime Coordination · DSU CSE Sem 5
+      </div>
+      <h1 class="hero-title">Zero Friction Campus Time.</h1>
+      <p class="hero-sub">
+        Personalized schedule routing, N-way multi-section squad free-time intersection, and real-time DSU ERP 75% attendance margin forecasting.
+      </p>
+      <div style="display:flex; justify-content:center; gap:12px; flex-wrap:wrap;">
+        <button class="btn-solid" onclick="document.querySelector('[data-view=\'squad\']').click()">
+          ⚡ Squad Spacetime Sync
+        </button>
+        <button class="btn-outline" onclick="openAttendanceModal()">
+          📊 DSU Attendance Copilot
+        </button>
+      </div>
     </div>
   </section>
 
-  <!-- ===================== SECTION TIMETABLE VIEW ===================== -->
-  <section class="view" id="view-section">
-    <div class="pigeonholes" id="pigeonholes"></div>
+  <!-- Main Operating Console -->
+  <main class="container" style="position:relative; z-index:10; margin-top:-10px;">
 
-    <h2 class="panel-title" id="secTitle">—</h2>
-    <div class="panel-meta" id="secMeta"></div>
-
-    <div class="grid-scroll">
-      <table class="tt" id="secTable"></table>
+    <!-- Student Profile Personalization Strip -->
+    <div class="profile-bar">
+      <div class="profile-meta-wrap">
+        <div class="profile-tag">
+          Student: <b id="profileStudentName">N BHARATH</b>
+        </div>
+        <div class="profile-tag">
+          USN: <b id="profileStudentUsn">ENG24CS0537</b>
+        </div>
+        <div class="profile-tag">
+          Division: <b id="profileStudentSection">Section 5H</b>
+        </div>
+        <div class="profile-tag">
+          Lab Batch: <b id="profileStudentBatch">Batch 5H2</b>
+        </div>
+        <div class="profile-tag">
+          PE-1: <b id="profileStudentElective">AI for Business Analytics (Prof. Gowtham)</b>
+        </div>
+      </div>
+      <button class="nav-btn" onclick="openProfileModal()" style="color:var(--accent-indigo); border-color:rgba(99,102,241,0.4);">
+        ⚙️ Customize Profile
+      </button>
     </div>
 
-    <div class="legend">
-      <span><span class="swatch" style="background:var(--free-bg);border-color:var(--free)"></span> Free / Office</span>
-      <span><span class="swatch" style="background:var(--skiphigh-bg);border-color:var(--skiphigh)"></span> PE-1 (skippable)</span>
-      <span><span class="swatch" style="background:var(--skiplow-bg);border-color:var(--skiplow)"></span> CTS (skippable)</span>
-      <span><span class="swatch" style="background:var(--card);border-color:var(--line-strong)"></span> Core class / Lab / Soft Skill</span>
+    <!-- Live Quantum Beacon Radar HUD -->
+    <div class="radar-hud">
+      <div class="radar-card">
+        <div class="radar-title">
+          <span>LIVE BEACON CLOCK</span>
+          <span class="status-dot"></span>
+        </div>
+        <div class="radar-value" id="liveClockTime">--:--:--</div>
+        <div class="radar-sub" id="livePeriodStatus">Scanning campus frequency...</div>
+      </div>
+
+      <div class="radar-card">
+        <div class="radar-title">
+          <span>PERIOD COUNTDOWN</span>
+          <span id="beaconCountdownTag" style="font-size:10px; color:var(--text-dim);">T-MINUS</span>
+        </div>
+        <div class="radar-value" id="beaconCountdown">--m --s remaining</div>
+        <div class="radar-sub">Auto-synchronized with DSU lecture bell ringing</div>
+      </div>
+
+      <div class="radar-card">
+        <div class="radar-title">
+          <span>100% FREE RIGHT NOW</span>
+          <span style="font-size:10px; color:var(--free-text);">ZERO FRICTION</span>
+        </div>
+        <div class="beacon-chips-wrap" id="beaconFreeSections">
+          <span style="color:var(--text-dim); font-size:12px;">Computing live section states...</span>
+        </div>
+      </div>
+
+      <div class="radar-card" onclick="openAttendanceModal()" style="cursor:pointer;">
+        <div class="radar-title">
+          <span>DSU ERP ATTENDANCE</span>
+          <span id="overallAttendanceStatusBadge" class="status-pill safe" style="padding:2px 8px; font-size:10px;">SAFE</span>
+        </div>
+        <div class="radar-value" id="overallAttendancePct">88.24%</div>
+        <div class="radar-sub" id="overallAttendanceSummary">
+          <span id="overallPresentSlots">15 Present</span> · <span id="overallAbsentSlots">2 Absent</span> · <span id="overallConductedSlots">17 Total</span>
+        </div>
+      </div>
     </div>
 
-    <div class="courses">
-      <h2 class="section-h">Courses &amp; Faculty</h2>
-      <table class="courses-tbl">
-        <thead><tr><th style="width:110px;">Code</th><th>Course</th><th>Faculty</th></tr></thead>
-        <tbody id="courseBody"></tbody>
+    <!-- View Switcher -->
+    <div class="segmented-nav">
+      <button class="seg-btn active" data-view="squad">👥 Squad Sync (N-Way Overlap)</button>
+      <button class="seg-btn" data-view="chronos">📅 Chronos Grid (Section Matrix)</button>
+      <button class="seg-btn" data-view="electives">🎯 Electives (PE-1 Tracks)</button>
+      <button class="seg-btn" data-view="docs">📜 YC Philosophy & Architecture</button>
+    </div>
+
+    <!-- VIEW 1: MULTI-SECTION SQUAD SYNC -->
+    <section id="panel-squad" class="view-panel active">
+      <div class="card-minimal squad-header-card">
+        <div class="squad-chips-wrap">
+          <div style="font-family:var(--font-mono); font-size:12px; color:var(--text-dim); text-transform:uppercase;">
+            Active Squad:
+          </div>
+          <div id="squadChipsContainer" style="display:flex; gap:6px; flex-wrap:wrap;"></div>
+          <select id="addSquadSectionSelect" class="select-minimal"></select>
+        </div>
+
+        <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+          <div id="squadSyncScoreBadge" class="sync-score-badge">Computing Alignment...</div>
+          <button id="whatsappBroadcastBtn" class="nav-btn" style="color:#25D366; border-color:rgba(37,211,102,0.3);">
+            📲 Copy WhatsApp Invite
+          </button>
+          <button id="copyShareLinkBtn" class="nav-btn">
+            🔗 Share Squad Link
+          </button>
+        </div>
+      </div>
+
+      <div style="margin-top:20px;">
+        <h3 style="font-size:16px; font-weight:700; margin-bottom:12px; display:flex; align-items:center; gap:8px;">
+          <span>⚡ Ranked Friction-Free Rendezvous Windows</span>
+          <small style="font-weight:400; font-size:12px; color:var(--text-dim);">(Automated N-Way Intersection)</small>
+        </h3>
+        <ul id="squadRankList" class="rank-feed"></ul>
+      </div>
+
+      <div style="margin-top:28px;">
+        <h3 style="font-size:16px; font-weight:700; margin-bottom:12px;">
+          🌌 Squad Collective Space-Time Matrix
+        </h3>
+        <div class="matrix-container">
+          <table id="squadOverlayTable" class="matrix-table"></table>
+        </div>
+      </div>
+    </section>
+
+    <!-- VIEW 2: CHRONOS MATRIX (Single Section) -->
+    <section id="panel-chronos" class="view-panel">
+      <div class="section-strip" id="sectionPigeonholes"></div>
+
+      <div class="card-minimal" style="padding:18px 20px; margin-bottom:16px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
+        <div>
+          <h2 id="chronosSectionTitle" style="font-size:20px; font-weight:700; letter-spacing:-0.02em;">Section 5H</h2>
+          <div id="chronosSectionMeta" style="font-size:12.5px; color:var(--text-muted); margin-top:2px;"></div>
+        </div>
+        <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
+          <div style="font-family:var(--font-mono); font-size:12px; color:var(--text-dim);">
+            Free: <b id="analyticsFreeHours" style="color:var(--free-text);">0.0 hrs</b> · Flex: <b id="analyticsFlexHours" style="color:var(--flex-text);">0.0 hrs</b>
+          </div>
+          <button id="exportIcsBtn" class="nav-btn">
+            📅 Export to Apple/Google Calendar (.ics)
+          </button>
+        </div>
+      </div>
+
+      <div class="matrix-container">
+        <table id="chronosTimetable" class="matrix-table"></table>
+      </div>
+
+      <!-- Faculty Directory -->
+      <div class="directory-wrap">
+        <div class="dir-header">
+          <h3 style="font-size:16px; font-weight:700;">Faculty & Course Directory</h3>
+          <input type="text" id="facultySearchInput" class="input-minimal" placeholder="Filter by faculty, code (24CS3501), or topic...">
+        </div>
+        <table class="dir-table">
+          <thead>
+            <tr>
+              <th>Course Code</th>
+              <th>Course Title</th>
+              <th>Faculty Name</th>
+            </tr>
+          </thead>
+          <tbody id="directoryTableBody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- VIEW 3: ELECTIVES -->
+    <section id="panel-electives" class="view-panel">
+      <div class="card-minimal" style="padding:20px; margin-bottom:20px;">
+        <h2 style="font-size:18px; font-weight:700; margin-bottom:6px;">Program Elective 1 (PE-1) Tracks & Venues</h2>
+        <p style="font-size:13px; color:var(--text-muted);">
+          All PE-1 electives run simultaneously on <b style="color:var(--text-main);">Tuesday (08:30 – 10:20)</b> and <b style="color:var(--text-main);">Thursday (08:30 – 10:20)</b>.
+        </p>
+      </div>
+
+      <table class="dir-table">
+        <thead>
+          <tr>
+            <th>Track</th>
+            <th>Specialization</th>
+            <th>Faculty Mentor</th>
+            <th>Assigned Classroom</th>
+          </tr>
+        </thead>
+        <tbody id="electivesTableBody"></tbody>
       </table>
+    </section>
+
+    <!-- VIEW 4: DOCS & ARCHITECTURE -->
+    <section id="panel-docs" class="view-panel">
+      <div class="card-minimal" style="padding:28px;">
+        <h2 style="font-size:22px; font-weight:800; margin-bottom:14px;">The WORMHOLE Manifesto</h2>
+        <p style="font-size:14px; color:var(--text-muted); line-height:1.7; margin-bottom:16px;">
+          Wormhole was engineered with a singular focus: eliminate university scheduling friction. Students at Dayananda Sagar University operate across 12 distinct sections (5A through 5L), 6 elective tracks, and split lab batches. Finding common meeting slots for hackathons, club meetings, and lunch was historically a 20-minute manual negotiation.
+        </p>
+        <h3 style="font-size:16px; font-weight:700; margin:20px 0 8px;">Spacetime Set Intersection Algorithm</h3>
+        <p style="font-size:13.5px; color:var(--text-muted); line-height:1.6; margin-bottom:12px;">
+          Given an arbitrary subset of sections $S \subseteq \{5A, \dots, 5L\}$, Wormhole computes the $N$-way intersection across all 42 weekly slots:
+        </p>
+        <pre style="background:var(--bg-surface-elevated); padding:14px; border-radius:6px; font-family:var(--font-mono); font-size:12px; color:var(--accent-cyan); overflow-x:auto;">OverlapScore(day, t) = min_{s \in S} CategoryWeight(s, day, t)</pre>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- STUDENT PROFILE MODAL -->
+  <div id="profileModal" class="cmd-backdrop">
+    <div class="cmd-box">
+      <div class="modal-header">
+        <h3 style="font-size:16px; font-weight:700;">👤 Student Personalization Profile</h3>
+        <button class="chip-remove" id="closeProfileModalBtn" style="font-size:18px;">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label class="form-label">Assigned Section</label>
+          <select id="profileSectionSelect" class="form-select">
+            <option value="A">Section 5A</option>
+            <option value="B">Section 5B</option>
+            <option value="C">Section 5C</option>
+            <option value="D">Section 5D</option>
+            <option value="E">Section 5E</option>
+            <option value="F">Section 5F</option>
+            <option value="G">Section 5G</option>
+            <option value="H" selected>Section 5H</option>
+            <option value="I">Section 5I</option>
+            <option value="J">Section 5J</option>
+            <option value="K">Section 5K</option>
+            <option value="L">Section 5L</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Lab Batch Division (Half-Section Partition)</label>
+          <select id="profileBatchSelect" class="form-select">
+            <option value="1">Batch 1 (First Half — e.g. 5H1)</option>
+            <option value="2" selected>Batch 2 (Second Half — e.g. 5H2)</option>
+          </select>
+          <small style="color:var(--text-dim); font-size:11px; display:block; margin-top:4px;">
+            Auto-resolves lab swaps (e.g. ML Lab vs GPU Architecture Lab rooms).
+          </small>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">PE-1 Elective Track</label>
+          <select id="profileElectiveSelect" class="form-select">
+            <option value="24CS3511">Track 1: Cloud Computing (24CS3511)</option>
+            <option value="24CS3512" selected>Track 2: AI for Business Analytics (24CS3512)</option>
+            <option value="24CS3513">Track 3: Deep Learning (24CS3513)</option>
+            <option value="24CS3514">Track 4: Cyber Security & SOC (24CS3514)</option>
+            <option value="24CS3515">Track 5: Extended Reality XR (24CS3515)</option>
+            <option value="24CS3516">Track 6: Computer Graphics & Animation (24CS3516)</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Assigned PE-1 Faculty Mentor & Venue</label>
+          <select id="profileElectiveFacultySelect" class="form-select">
+            <!-- Dynamically populated -->
+          </select>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-solid" id="saveProfileBtn">Save Profile</button>
+      </div>
     </div>
-  </section>
+  </div>
 
-  <!-- ===================== ELECTIVES VIEW ===================== -->
-  <section class="view" id="view-electives">
-    <h2 class="panel-title">Professional Elective I</h2>
-    <div class="panel-meta">Choose your elective faculty &amp; room — same slot across every section (see your own timetable for the day/period).</div>
-    <table class="courses-tbl" id="electiveTbl">
-      <thead><tr><th style="width:70px;">No.</th><th>Course</th><th>Faculty</th><th style="width:90px;">Room</th></tr></thead>
-      <tbody></tbody>
-    </table>
-  </section>
+  <!-- DSU ERP ATTENDANCE & BUNK SIMULATOR MODAL -->
+  <div id="attendanceModal" class="cmd-backdrop">
+    <div class="cmd-box" style="max-width:820px;">
+      <div class="modal-header">
+        <div style="display:flex; align-items:center; gap:10px;">
+          <h3 style="font-size:16px; font-weight:700;">📊 DSU ERP Attendance & 75% Bunk Simulator</h3>
+          <span class="badge-version">ums.mydsi.org</span>
+        </div>
+        <button class="chip-remove" id="closeAttendanceModalBtn" style="font-size:18px;">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div style="margin-bottom:16px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+          <p style="font-size:12.5px; color:var(--text-muted); margin:0;">
+            Real-time status based on Dayananda Sagar University ERP. Click <b style="color:var(--free-text);">+1</b> or <b style="color:#EF4444;">-1</b> to simulate future classes.
+          </p>
+          <div style="display:flex; gap:8px;">
+            <a id="dsuBookmarkletLink" class="nav-btn" href="#" style="color:var(--accent-cyan); font-size:11px;" title="Drag this to your browser bookmarks bar">
+              ⭐ 1-Click ERP Bookmarklet
+            </a>
+            <button id="resetAttendanceBtn" class="nav-btn" style="font-size:11px;">
+              ↺ Reset
+            </button>
+          </div>
+        </div>
 
-</div>
+        <!-- Attendance Table -->
+        <div class="matrix-container" style="margin:0 0 16px;">
+          <table class="dir-table" style="font-size:12px;">
+            <thead>
+              <tr>
+                <th>Code</th>
+                <th>Course</th>
+                <th>Total</th>
+                <th>Pres</th>
+                <th>Abs</th>
+                <th>Pct</th>
+                <th>75% Bunk Margin</th>
+                <th>Simulate</th>
+              </tr>
+            </thead>
+            <tbody id="attendanceModalTableBody"></tbody>
+          </table>
+        </div>
 
-<footer>Compiled from 5th Sem TT 2026‑27 ODD version 3.0 (8‑8‑2026) — for personal planning only, always cross‑check the official PDF for changes.</footer>
+        <!-- Raw Text / Report Parser -->
+        <details style="margin-top:12px; background:var(--bg-surface); padding:12px; border-radius:6px; border:1px solid var(--border-subtle);">
+          <summary style="font-size:12px; font-weight:600; color:var(--text-muted); cursor:pointer;">
+            📋 Paste Raw Report or Text from ums.mydsi.org
+          </summary>
+          <div style="margin-top:10px;">
+            <textarea id="attendancePasteArea" class="form-textarea" rows="4" placeholder="Paste the downloaded text from DSU ERP or table here (e.g. 24CS3501 GPU Architecture 3 3 0)..."></textarea>
+            <div style="margin-top:8px; text-align:right;">
+              <button id="parseAttendanceTextBtn" class="btn-solid" style="padding:6px 14px; font-size:12px;">
+                ⚡ Parse & Sync Attendance
+              </button>
+            </div>
+          </div>
+        </details>
+      </div>
+    </div>
+  </div>
 
-<script>
-/* ===================== DATA ===================== */
-const PERIODS = [
-  {start:"8:30 AM",  end:"9:25 AM",  label:"1st"},
-  {start:"9:25 AM",  end:"10:20 AM", label:"2nd"},
-  {start:"10:45 AM", end:"11:40 AM", label:"3rd"},
-  {start:"11:40 AM", end:"12:35 PM", label:"4th"},
-  {start:"1:50 PM",  end:"2:40 PM",  label:"5th"},
-  {start:"2:40 PM",  end:"3:30 PM",  label:"6th"},
-  {start:"3:30 PM",  end:"4:20 PM",  label:"7th"},
-];
-const DAYS = ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
-const SOFT = ["SOFT SKILL","SOFT SKILL","SOFT SKILL","SOFT SKILL","SOFT SKILL"];
+  <!-- COMMAND PALETTE (⌘K) -->
+  <div id="commandPaletteModal" class="cmd-backdrop">
+    <div class="cmd-box">
+      <div class="cmd-input-wrap">
+        <span style="color:var(--text-dim);">⌘</span>
+        <input type="text" id="cmdSearchInput" class="cmd-input" placeholder="Search section (5A-5L), faculty, course code, or action...">
+        <span class="kbd-badge">ESC</span>
+      </div>
+      <div id="cmdSearchResults" class="cmd-results"></div>
+    </div>
+  </div>
 
-const SECTIONS = {
-  A:{advisor:"Prof. Namyapriya D",room:"A424",
-    days:{
-      Monday:["ML-A1/GPU-A2 (513/508)","ML-A1/GPU-A2 (513/508)","SEMP","ATC","OS-LH4","OS-LH4","SPORTS"],
-      Tuesday:["IDS","SEMP","ML","GPU","CTS","CTS","PE-1"],
-      Wednesday:["ML","GPU","IDS","OFFICE","MOOC","IDS","OFFICE"],
-      Thursday:["ATC","GPU","SEMP","CTS","PE-1","PE-1","LIBRARY"],
-      Friday:["ATC","ML","ML-A2/GPU-A1 (513/508)","ML-A2/GPU-A1 (513/508)","MENTOR","OS-LH4","SPORTS"],
-      Saturday:["MOOC","MOOC",...SOFT],
-    },
-    courses:[
-      {code:"24CS3501",name:"GPU Architecture & Programming",faculty:"Prof. Namyapriya D",labs:[
-        {tag:"Lab 5A1",faculty:"Prof. Namyapriya D, Prof. Megha H N, Prof. Sagarika Biswas, Samson Alemayehu"},
-        {tag:"Lab 5A2",faculty:"Prof. Namyapriya D, Prof. Sushma D S, Prof. Sriparna Paul, Prof. Anuj Patidar"},
-      ]},
-      {code:"24CS3502",name:"AI-Driven Software Engineering & PM",faculty:"Dr. Rajesh Agarwal"},
-      {code:"24CS3503",name:"Machine Learning",faculty:"Prof. Shravankumar Dhangi",labs:[
-        {tag:"Lab 5A1",faculty:"Dr. K Vengatesan, Dr. George Fernandez, Prof. Anurag Gupta, Tewodrose Tilahun Dejen"},
-        {tag:"Lab 5A2",faculty:"Dr. K Vengatesan, Prof. Chethan K S, Dr. Chavva Subba Reddy, Tewodrose Tilahun Dejen"},
-      ]},
-      {code:"24CS3504",name:"Introduction to Data Science",faculty:"Dr. Naresh P"},
-      {code:"24CS3505",name:"Operating Systems",faculty:"Dr. Nandini K"},
-      {code:"24CS3506",name:"Automata Theory & Compiler Design",faculty:"Prof. Gaurav Kumar"},
-      {code:"24CS35XX",name:"Professional Elective I / MOOC",faculty:"See Electives tab"},
-      {code:"24CS3507",name:"Cognitive & Technical Skills–V",faculty:"—"},
-    ]},
+  <!-- Footer -->
+  <footer class="app-footer">
+    <div class="container footer-copy">
+      WORMHOLE Autonomous Spacetime Engine · Dayananda Sagar University CSE Sem 5<br>
+      Engineered for maximum velocity, craft, and zero friction · Built with Obsidian Void MDS v3.0
+    </div>
+  </footer>
 
-  B:{advisor:"Prof. Bharath B",room:"A431",
-    days:{
-      Monday:["ML","GPU","SEPM","IDS","OS-LH4","OS-LH4","SPORTS"],
-      Tuesday:["ML-B1/GPU-B2 (513/508)","ML-B1/GPU-B2 (513/508)","CTS","ML","ATC","MOOC","PE-1"],
-      Wednesday:["IDS","ATC","GPU","SEPM","CTS","CTS","MENTOR"],
-      Thursday:["GPU","IDS","ML-B2/GPU-B1 (513/508)","ML-B2/GPU-B1 (513/508)","PE-1","PE-1","LIBRARY"],
-      Friday:["ATC","ML","SEPM","OFFICE","MENTOR","OS-LH4","SPORTS"],
-      Saturday:["MOOC","MOOC",...SOFT],
-    },
-    courses:[
-      {code:"24CS3501",name:"GPU Architecture & Programming",faculty:"Dr Benaka Santhosha.S",labs:[
-        {tag:"Lab 5B1",faculty:"Dr Benaka Santhosha.S, Prof. Santhosh M, Prof. Zunaid Akhtar, Aklilu Teklemariam Gossa"},
-        {tag:"Lab 5B2",faculty:"Dr Benaka Santhosha.S, Prof. Santhosh M, Prof. Sumy Joseph, Prof. Rumpa Chakraborty"},
-      ]},
-      {code:"24CS3502",name:"AI-Driven Software Engineering & PM",faculty:"Prof. Bharath B"},
-      {code:"24CS3503",name:"Machine Learning",faculty:"Prof. Manoj Kumar N I",labs:[
-        {tag:"Lab 5B1",faculty:"Prof. Manoj Kumar N I, Prof. Pooja shree H R, Prof. Anupriya Bhushan, Tewodrose Tilahun Dejen"},
-        {tag:"Lab 5B2",faculty:"Prof. Manoj Kumar N I, Prof. Chethan K S, Prof. Ritika Kumari, Dr. Girisha G S"},
-      ]},
-      {code:"24CS3504",name:"Introduction to Data Science",faculty:"Dr. Shahin Fatima"},
-      {code:"24CS3505",name:"Operating Systems",faculty:"Dr. Girisha G S"},
-      {code:"24CS3506",name:"Automata Theory & Compiler Design",faculty:"Prof Abhisek Midya"},
-      {code:"24CS35XX",name:"Professional Elective I / MOOC",faculty:"See Electives tab"},
-      {code:"24CS3507",name:"Cognitive & Technical Skills–V",faculty:"—"},
-    ]},
-
-  C:{advisor:"Prof. Soham Ghosh",room:"A432",
-    days:{
-      Monday:["IDS","ATC","ML-C1/GPU-C2 (513/508)","ML-C1/GPU-C2 (513/508)","OS-LH4","OS-LH4","SPORTS"],
-      Tuesday:["ML","CTS","SEPM","GPU","IDS","MOOC","PE-1"],
-      Wednesday:["ML-C2/GPU-C1 (513/508)","ML-C2/GPU-C1 (513/508)","ATC","ML","CTS","CTS","MENTOR"],
-      Thursday:["SEPM","GPU","MENTOR","IDS","PE-1","PE-1","LIBRARY"],
-      Friday:["ML","OFFICE","ATC","GPU","SEPM-A424","OS-LH4","SPORTS"],
-      Saturday:["MOOC","MOOC",...SOFT],
-    },
-    courses:[
-      {code:"24CS3501",name:"GPU Architecture & Programming",faculty:"Prof. Santhosh M (Room A432)",labs:[
-        {tag:"Lab 5C1",faculty:"Prof. Santhosh M, Prof. Sruthi Yapalaparvi, Prof. Ritika Kumari"},
-        {tag:"Lab 5C2",faculty:"Prof. Santhosh M, Dr. Benaka Santhosha.S, Prof. Ritika Kumari"},
-      ]},
-      {code:"24CS3502",name:"AI-Driven Software Engineering & PM",faculty:"Prof. D. Karthik Naik"},
-      {code:"24CS3503",name:"Machine Learning",faculty:"Dr Meenakshi Malhotra",labs:[
-        {tag:"Lab 5C1",faculty:"Dr. Meenakshi Malhotra, Prof. Fenita F, Prof. Rumpa Chakraborty, Biruk Wodajo Talacho"},
-        {tag:"Lab 5C2",faculty:"Dr. Meenakshi Malhotra, Prof. Mayank Kumar, Prof. Akmal Ahmed, Biruk Wodajo Talacho"},
-      ]},
-      {code:"24CS3504",name:"Introduction to Data Science",faculty:"Prof. Soham Ghosh"},
-      {code:"24CS3505",name:"Operating Systems",faculty:"Ritik Vijaykumar Chhatwani"},
-      {code:"24CS3506",name:"Automata Theory & Compiler Design",faculty:"Prof. Pritam Biswas"},
-      {code:"24CS35XX",name:"Professional Elective I / MOOC",faculty:"See Electives tab"},
-      {code:"24CS3507",name:"Cognitive & Technical Skills–V",faculty:"—"},
-    ]},
-
-  D:{advisor:"Prof. Ritik Chhatwani",room:"A433",
-    days:{
-      Monday:["CTS-A533","ML-A533","GPU","SEPM","ML-D2/GPU-D1 (513/508)","ML-D2/GPU-D1 (513/508)","SPORTS"],
-      Tuesday:["OS-LH4","OS-LH4","ML","IDS","ATC","CTS","PE-1"],
-      Wednesday:["CTS","GPU","IDS","SEPM","ATC","MOOC","MENTOR"],
-      Thursday:["ML-D1/GPU-D2 (513/508)","ML-D1/GPU-D2 (513/508)","SEPM","OFFICE","PE-1","PE-1","SPORTS"],
-      Friday:["GPU","ATC","ML","OFFICE","IDS-431","SPORTS","OS-LH4"],
-      Saturday:["MOOC","MOOC",...SOFT],
-    },
-    courses:[
-      {code:"24CS3501",name:"GPU Architecture & Programming",faculty:"Prof. Shubhra Jyoti Paul",labs:[
-        {tag:"Lab 5D1",faculty:"Prof. Shubhra Jyoti Paul, Prof. Md Zafar Imam, Prof. Manas Singha, Prof. Sriparna Paul"},
-        {tag:"Lab 5D2",faculty:"Prof. Shubhra Jyoti Paul, Dr. Nandini K, Prof. Rumpa Chakraborty, Prof. Md Zafar Imam"},
-      ]},
-      {code:"24CS3502",name:"AI-Driven Software Engineering & PM",faculty:"Prof. Shubham Mishra"},
-      {code:"24CS3503",name:"Machine Learning",faculty:"Dr. Kumar Dilip",labs:[
-        {tag:"Lab 5D1",faculty:"Dr. Gowdham C, Prof. Pooja shree H R, Prof. Akmal Ahmed"},
-        {tag:"Lab 5D2",faculty:"Dr. Gowdham C, Prof. Pooja shree H R, Dr. Naresh P"},
-      ]},
-      {code:"24CS3504",name:"Introduction to Data Science",faculty:"Prof. Smriti Bharti"},
-      {code:"24CS3505",name:"Operating Systems",faculty:"Prof. Chandan Maji"},
-      {code:"24CS3506",name:"Automata Theory & Compiler Design",faculty:"Prof. Sharath H A"},
-      {code:"24CS35XX",name:"Professional Elective I / MOOC",faculty:"See Electives tab"},
-      {code:"24CS3507",name:"Cognitive & Technical Skills–V",faculty:"—"},
-    ]},
-
-  E:{advisor:"Prof. Muthu Bala N",room:"A437",
-    days:{
-      Monday:["GPU","SEPM","ML","IDS","CTS-A540","MOOC","SPORTS"],
-      Tuesday:["OS-LH4","OS-LH4","ML-E1/GPU-E2 (513/508)","ML-E1/GPU-E2 (513/508)","CTS","MENTOR","PE-1"],
-      Wednesday:["SEPM","ML","GPU","IDS","ATC","CTS","LIBRARY"],
-      Thursday:["ML","SEPM","LIBRARY","OFFICE","PE-1","PE-1","SPORTS"],
-      Friday:["ATC","IDS","ATC","GPU","ML-E2/GPU-E1 (513/508)","ML-E2/GPU-E1 (513/508)","OS-LH4"],
-      Saturday:["MOOC","MOOC",...SOFT],
-    },
-    courses:[
-      {code:"24CS3501",name:"GPU Architecture & Programming",faculty:"Prof. Dipanjan Bhattacharjee",labs:[
-        {tag:"Lab 5E1",faculty:"Prof. Dipanjan Bhattacharjee, Prof. Prolay Biswas, Prof. Spardha Sahu, Samson Alemayehu"},
-        {tag:"Lab 5E2",faculty:"Prof. Dipanjan Bhattacharjee, Prof. Prolay Biswas, Prof. Spardha Sahu, Samson Alemayehu"},
-      ]},
-      {code:"24CS3502",name:"AI-Driven Software Engineering & PM",faculty:"Prof. Vishwas D B"},
-      {code:"24CS3503",name:"Machine Learning",faculty:"Prof. Muthu Bala N",labs:[
-        {tag:"Lab 5E1",faculty:"Prof. Muthu Bala N, Prof. Bharath B, Prof. Kriti Bakshi, Biruk Wodajo Talacho"},
-        {tag:"Lab 5E2",faculty:"Prof. Muthu Bala N, Prof. Bharath B, Prof. Kriti Bakshi, Biruk Wodajo Talacho"},
-      ]},
-      {code:"24CS3504",name:"Introduction to Data Science",faculty:"Prof. Pedda Nagyalla Maddaiah"},
-      {code:"24CS3505",name:"Operating Systems",faculty:"Prof. Arpita Paria"},
-      {code:"24CS3506",name:"Automata Theory & Compiler Design",faculty:"Prof. Pooja Shree H R"},
-      {code:"24CS35XX",name:"Professional Elective I / MOOC",faculty:"See Electives tab"},
-      {code:"24CS3507",name:"Cognitive & Technical Skills–V",faculty:"—"},
-    ]},
-
-  F:{advisor:"Prof. Sweta Chopdar",room:"A438",
-    days:{
-      Monday:["ML","GPU","SEPM","IDS","MOOC","LIBRARY","SPORTS"],
-      Tuesday:["OS-LH4","OS-LH4","ML","CTS","ML-F2/GPU-F1 (513/508)","ML-F2/GPU-F1 (513/508)","PE-1"],
-      Wednesday:["ATC","IDS","ML-F1/GPU-F2 (513/508)","ML-F1/GPU-F2 (513/508)","CTS","CTS","MENTOR"],
-      Thursday:["IDS","SEPM","ATC","GPU","PE-1","PE-1","SPORTS"],
-      Friday:["ATC","SEPM","ML","GPU","OFFICE","MENTOR","OS-LH4"],
-      Saturday:["MOOC","MOOC",...SOFT],
-    },
-    courses:[
-      {code:"24CS3501",name:"GPU Architecture & Programming",faculty:"Prof. Mala B A",labs:[
-        {tag:"Lab 5F1",faculty:"Prof. Mala B A, Prof. Soram Wanglen, Prof. Divyanshu Verma(2), Prof. Md Zafar Imam"},
-        {tag:"Lab 5F2",faculty:"Prof. Mala B A, Prof. Sriparna Paul, Prof. Sagarika Biswas, Aklilu Teklemariam Gossa"},
-      ]},
-      {code:"24CS3502",name:"AI-Driven Software Engineering & PM",faculty:"Dr. V. Karuppuchamy"},
-      {code:"24CS3503",name:"Machine Learning",faculty:"Prof. Sumy Joseph",labs:[
-        {tag:"Lab 5F1",faculty:"Prof. Sumy Joseph, Dr. George Fernandez, Prof. Anupriya Bhushan"},
-        {tag:"Lab 5F2",faculty:"Prof. Sumy Joseph, Prof. Shilpa Sudheendran, Prof. Bikram Jit Saha"},
-      ]},
-      {code:"24CS3504",name:"Introduction to Data Science",faculty:"Prof. Sweta Chopdar"},
-      {code:"24CS3505",name:"Operating Systems",faculty:"Dr. Naitik S T"},
-      {code:"24CS3506",name:"Automata Theory & Compiler Design",faculty:"Prof. Sushma D S"},
-      {code:"24CS35XX",name:"Professional Elective I / MOOC",faculty:"See Electives tab"},
-      {code:"24CS3507",name:"Cognitive & Technical Skills–V",faculty:"—"},
-    ]},
-
-  G:{advisor:"Prof. Chandan Maji",room:"B112",
-    days:{
-      Monday:["ATC","ML","SEMP","IDS","GPU","MOOC","OS-LH4"],
-      Tuesday:["ATC-A438","GPU-A438","IDS-A437","CTS-A437","LIBRARY","MENTOR","PE-1"],
-      Wednesday:["ML","IDS","ATC-A438","CTS-A438","ML-G2/GPU-G1 (513/508)","ML-G2/GPU-G1 (513/508)","SPORTS"],
-      Thursday:["ML","SEPM","CTS-A431","GPU-A431","PE-1","PE-1","MENTOR"],
-      Friday:["ML-G1/GPU-G2 (513/508)","ML-G1/GPU-G2 (513/508)","OS-LH4","OS-LH4","SEPM","OFFICE","SPORTS"],
-      Saturday:["MOOC","MOOC",...SOFT],
-    },
-    courses:[
-      {code:"24CS3501",name:"GPU Architecture & Programming",faculty:"Prof. Shraddha Choudhary",labs:[
-        {tag:"Lab 5G1",faculty:"Prof. Shraddha Choudhary, Prof. Namyapriya D, Prof. Ghulam Haider, Solomon Tsegay Nibret"},
-        {tag:"Lab 5G2",faculty:"Prof. Shraddha Choudhary, Dr. T.Gayathri, Prof. Zunaid Akhtar, Solomon Tsegay Nibret"},
-      ]},
-      {code:"24CS3502",name:"AI-Driven Software Engineering & PM",faculty:"Dr. Chavva Subba Reddy"},
-      {code:"24CS3503",name:"Machine Learning",faculty:"Prof. Sonali Bairagi",labs:[
-        {tag:"Lab 5G1",faculty:"Prof. Sonali Bairagi, Dr. Damodharan D, Prof. Saurav Kumar"},
-        {tag:"Lab 5G2",faculty:"Prof. Sonali Bairagi, Dr. Kumar Dilip, Prof. Muthu Bala N, Prof. Arpita Paria"},
-      ]},
-      {code:"24CS3504",name:"Introduction to Data Science",faculty:"Prof Prateek Jha"},
-      {code:"24CS3505",name:"Operating Systems",faculty:"Prof. Harsh Jha"},
-      {code:"24CS3506",name:"Automata Theory & Compiler Design",faculty:"Prof. Megha H N"},
-      {code:"24CS35XX",name:"Professional Elective I / MOOC",faculty:"See Electives tab"},
-      {code:"24CS3507",name:"Cognitive & Technical Skills–V",faculty:"—"},
-    ]},
-
-  H:{advisor:"Prof. Praveen Gopal Gaonkar",room:"B015, B110, B122",
-    days:{
-      Monday:["ML-H1/GPU-H2 (514/509)","ML-H1/GPU-H2 (514/509)","ATC-B015","GPU-B015","SEPM-A537","MOOC","OS-LH4"],
-      Tuesday:["SEPM-A437","GPU-A437","ML-A524","SEPM-A524","IDS-B110","MENTOR","PE-1"],
-      Wednesday:["ML-B110","MENTOR","ML-H2/GPU-H1 (514/509)","ML-H2/GPU-H1 (514/509)","IDS-B110","CTS-B110","CTS-B110"],
-      Thursday:["GPU-B122","ML-B122","ATC-B111","CTS-437","PE-1","PE-1","SPORTS"],
-      Friday:["LIBRARY","OFFICE","OS-LH4","OS-LH4","ATC-B122","IDS-A540","SPORTS"],
-      Saturday:["MOOC","MOOC",...SOFT],
-    },
-    courses:[
-      {code:"24CS3501",name:"GPU Architecture & Programming",faculty:"Prof. Abhishek Kumar Pandey",labs:[
-        {tag:"Lab 5H1",faculty:"Prof. Abhishek Kumar Pandey, Prof. Sushma D S, Samson Alemayehu"},
-        {tag:"Lab 5H2",faculty:"Prof. Abhishek Kumar Pandey, Dr. Gousia Thahniyath, Dr. Gowdham C, Prof. Tarun Saini"},
-      ]},
-      {code:"24CS3502",name:"AI-Driven Software Engineering & PM",faculty:"Prof. Diana George"},
-      {code:"24CS3503",name:"Machine Learning",faculty:"Prof. Shilpa Sudheendran",labs:[
-        {tag:"Lab 5H1",faculty:"Prof. Shilpa Sudheendran, Prof. Sandipan Laha, Prof. Sweta Chopdar"},
-        {tag:"Lab 5H2",faculty:"Prof. Shilpa Sudheendran, Prof. Pooja shree H R, Dr. Chavva Subba Reddy"},
-      ]},
-      {code:"24CS3504",name:"Introduction to Data Science",faculty:"Dr. Gowdham C"},
-      {code:"24CS3505",name:"Operating Systems",faculty:"Prof. Yashpal Gupta S"},
-      {code:"24CS3506",name:"Automata Theory & Compiler Design",faculty:"Prof. A Prakash"},
-      {code:"24CS35XX",name:"Professional Elective I / MOOC",faculty:"See Electives tab"},
-      {code:"24CS3507",name:"Cognitive & Technical Skills–V",faculty:"—"},
-    ]},
-
-  I:{advisor:"Prof. Gaurav Kumar",room:"B111",
-    days:{
-      Monday:["ML-A541","IDS-A541","ML-I1/GPU-I2 (514/509)","ML-I1/GPU-I2 (514/509)","ATC","MOOC","OS-LH4"],
-      Tuesday:["ATC","GPU","ML","SEPM","IDS","MENTOR","PE-1"],
-      Wednesday:["SEPM","GPU","CTS","ML","SEPM","IDS","SPORTS"],
-      Thursday:["ML-I2/GPU-I1 (514/509)","ML-I2/GPU-I1 (514/509)","OFFICE","ATC-A433","PE-1","PE-1","GPU"],
-      Friday:["LIBRARY","MENTOR","OS-LH4","OS-LH4","CTS-A433","CTS-A433","SPORTS"],
-      Saturday:["MOOC","MOOC",...SOFT],
-    },
-    courses:[
-      {code:"24CS3501",name:"GPU Architecture & Programming",faculty:"Dr. Chetan V Sagarnal",labs:[
-        {tag:"Lab 5I1",faculty:"Dr. Chetan V Sagarnal, Prof. Sagarika Biswas, Prof. Sriparna Paul, Girmay Tekle Berhe"},
-        {tag:"Lab 5I2",faculty:"Dr. Chetan V Sagarnal, Prof. Debjit Pahari, Prof. Pabitra Kundu, Girmay Tekle Berhe"},
-      ]},
-      {code:"24CS3502",name:"AI-Driven Software Engineering & PM",faculty:"Dr. Damodharan D"},
-      {code:"24CS3503",name:"Machine Learning",faculty:"Dr. Guruprasad M S",labs:[
-        {tag:"Lab 5I1",faculty:"Dr. Guruprasad M S, Prof. Yashpal Gupta S, Prof. Kriti Bakshi"},
-        {tag:"Lab 5I2",faculty:"Dr. Guruprasad M S, Prof. Yashpal Gupta S, Prof. Kriti Bakshi, Dr. George Fernandez"},
-      ]},
-      {code:"24CS3504",name:"Introduction to Data Science",faculty:"Dr. Tanvir H Sardar"},
-      {code:"24CS3505",name:"Operating Systems",faculty:"Dr. Rupam Bhagawati"},
-      {code:"24CS3506",name:"Automata Theory & Compiler Design",faculty:"Prof. Shubham Upadhyay"},
-      {code:"24CS35XX",name:"Professional Elective I / MOOC",faculty:"See Electives tab"},
-      {code:"24CS3507",name:"Cognitive & Technical Skills–V",faculty:"—"},
-    ]},
-
-  J:{advisor:"Prof. Prateek Jha",room:"A520",
-    days:{
-      Monday:["IDS-A531","GPU-A531","ML","ATC","MENTOR","CTS-A532","SPORTS"],
-      Tuesday:["ML-J1/GPU-J2 (514/509)","ML-J1/GPU-J2 (514/509)","ML","GPU","IDS","SEPM","PE-1"],
-      Wednesday:["ML","ATC","SEPM-A531","IDS-A531","CTS-A532","MOOC","OS-LH4"],
-      Thursday:["ATC","GPU","OS-LH4","OS-LH4","PE-1","PE-1","MENTOR"],
-      Friday:["LIBRARY","OFFICE","ML-J2/GPU-J1 (514/509)","ML-J2/GPU-J1 (514/509)","SEPM","CTS","SPORTS"],
-      Saturday:["MOOC","MOOC",...SOFT],
-    },
-    courses:[
-      {code:"24CS3501",name:"GPU Architecture & Programming",faculty:"Prof. Md Zafar Imam",labs:[
-        {tag:"Lab 5J1",faculty:"Prof. Zunaid Akhtar, Dr. Gowdham C, Prof. Harijit Tripura, Girmay Tekle Berhe"},
-        {tag:"Lab 5J2",faculty:"Prof. Zunaid Akhtar, Prof. Shravankumar Dhangi, Prof. Shubham Mishra, Girmay Tekle Berhe"},
-      ]},
-      {code:"24CS3502",name:"AI-Driven Software Engineering & PM",faculty:"Dr. Mouleeswaran SK"},
-      {code:"24CS3503",name:"Machine Learning",faculty:"Dr. Bipin Kumar Rai",labs:[
-        {tag:"Lab 5J1",faculty:"Dr. Shahin Fatima, Dr. Damodharan D, Dr. Chavva Subba Reddy"},
-        {tag:"Lab 5J2",faculty:"Dr. Shahin Fatima, Dr. V Karuppuchamy, Prof. Anuj Patidar"},
-      ]},
-      {code:"24CS3504",name:"Introduction to Data Science",faculty:"Dr. Arunkumar Gopu"},
-      {code:"24CS3505",name:"Operating Systems",faculty:"Dr. Prabhakar M"},
-      {code:"24CS3506",name:"Automata Theory & Compiler Design",faculty:"Prof. Spardha Sahu"},
-      {code:"24CS35XX",name:"Professional Elective I / MOOC",faculty:"See Electives tab"},
-      {code:"24CS3507",name:"Cognitive & Technical Skills–V",faculty:"—"},
-    ]},
-
-  K:{advisor:"Prof. Megha H N",room:"A521",
-    days:{
-      Monday:["ATC-A532","SEPM-A532","ML","IDS","MOOC","GPU","SPORTS"],
-      Tuesday:["ATC-A532","SEPM","ML-K2/GPU-K1 (514/509)","ML-K2/GPU-K1 (514/509)","IDS-A524","CTS-A524","PE-1"],
-      Wednesday:["GPU","ML","ATC","SEPM","IDS","LIBRARY","OS-LH4"],
-      Thursday:["GPU","CTS","OS-LH4","OS-LH4","PE-1","PE-1","SPORTS"],
-      Friday:["ML-K1/GPU-K2 (514/509)","ML-K1/GPU-K2 (514/509)","SPORTS","SPORTS","ML","CTS","SPORTS"],
-      Saturday:["MOOC","MOOC",...SOFT],
-    },
-    courses:[
-      {code:"24CS3501",name:"GPU Architecture & Programming",faculty:"Dr. Shashikiran V",labs:[
-        {tag:"Lab 5K1",faculty:"Dr. Shashikiran V, Dr. Nandini K, Prof. Mala B A, Aklilu Teklemariam Gossa"},
-        {tag:"Lab 5K2",faculty:"Dr. Shashikiran V, Prof. Rumpa Chakraborty, Prof. Ritika Kumari, Aklilu Teklemariam Gossa"},
-      ]},
-      {code:"24CS3502",name:"AI-Driven Software Engineering & PM",faculty:"Prof. Tanaya Bala Behera"},
-      {code:"24CS3503",name:"Machine Learning",faculty:"Prof. Bikram Jit Saha",labs:[
-        {tag:"Lab 5K1",faculty:"Prof. Bikram Jit Saha, Prof. Diana George, Prof. Nafees Raza"},
-        {tag:"Lab 5K2",faculty:"Prof. Fenita F, Prof. Nafees Raza, Dr. V Karuppuchamy"},
-      ]},
-      {code:"24CS3504",name:"Introduction to Data Science",faculty:"Prof. Rohit Kumar Singh"},
-      {code:"24CS3505",name:"Operating Systems",faculty:"Dr. Basavaraj N Hiremath"},
-      {code:"24CS3506",name:"Automata Theory & Compiler Design",faculty:"Prof. Kriti Bakshi"},
-      {code:"24CS35XX",name:"Professional Elective I / MOOC",faculty:"See Electives tab"},
-      {code:"24CS3507",name:"Cognitive & Technical Skills–V",faculty:"—"},
-    ]},
-
-  L:{advisor:"Prof. Anisha Dawar",room:"A522",
-    days:{
-      Monday:["ATC-A537","GPU-A537","SEPM","ML-5L","IDS","CTS","SPORTS"],
-      Tuesday:["GPU","ML-5L","CTS-A531","SEPM-A531","ML-L1/GPU-L2 (514/509)","ML-L1/GPU-L2 (514/509)","PE-1"],
-      Wednesday:["IDS","GPU","ML-5L","ATC","CTS-A537","MOOC","OS-LH4"],
-      Thursday:["ATC-A537","SEPM-A537","OS-LH4","OS-LH4","PE-1","PE-1","IDS-5L"],
-      Friday:["LIBRARY","OFFICE","LIBRARY","MENTOR","ML-L2/GPU-L1 (514/509)","ML-L2/GPU-L1 (514/509)","SPORTS"],
-      Saturday:["MOOC","MOOC",...SOFT],
-    },
-    courses:[
-      {code:"24CS3501",name:"GPU Architecture & Programming",faculty:"Prof. Priya Pudke",labs:[
-        {tag:"Lab 5L1",faculty:"Prof. Priya Pudke, Prof. Tarun Saini, Prof. Goutham T R, Solomon Tsegay Nibret"},
-        {tag:"Lab 5L2",faculty:"Prof. Priya Pudke, Dr. Chetan V Sagarnal, Prof. Sushma D S, Solomon Tsegay Nibret"},
-      ]},
-      {code:"24CS3502",name:"AI-Driven Software Engineering & PM",faculty:"Dr. Senthil Kumar"},
-      {code:"24CS3503",name:"Machine Learning",faculty:"Prof. Yashaswini H C",labs:[
-        {tag:"Lab 5L1",faculty:"Prof. Yashaswini H C, Dr. Shadab Siddiqui, Prof. Sonali Bairagi, Tewodrose Tilahun Dejen"},
-        {tag:"Lab 5L2",faculty:"Prof. Yashaswini H C, Prof. Manoj Kumar N I, Prof. Sonali Bairagi"},
-      ]},
-      {code:"24CS3504",name:"Introduction to Data Science",faculty:"Prof. Ayush Yadav"},
-      {code:"24CS3505",name:"Operating Systems",faculty:"Prof. Anisha Dawar"},
-      {code:"24CS3506",name:"Automata Theory & Compiler Design",faculty:"Prof. Prolay Biswas"},
-      {code:"24CS35XX",name:"Professional Elective I / MOOC",faculty:"See Electives tab"},
-      {code:"24CS3507",name:"Cognitive & Technical Skills–V",faculty:"—"},
-    ]},
-};
-
-const ELECTIVES = [
-  {no:1,name:"24CS3508 — AI for Business Analytics",rows:[
-    ["Prof. Sruthi Yapalaparvi","A424"],["Prof. Pooja shree H R","A431"],["Prof. Goutham T R","A432"],
-    ["Prof. Prajwal S P","A433"],["Prof. Sriparna Paul","A437"],
-  ]},
-  {no:2,name:"24CS35XX — Computer Graphics",rows:[["Prof. Rumpa Chakraborty","A438"]]},
-  {no:3,name:"24CS3511 — Cloud Computing",rows:[
-    ["Dr. George Fernandez","A524"],["Dr. Sridhar S K","A540"],["Dr. Shadab Siddiqui","A541"],
-    ["Prof. Praveen Gopal Gaonkar","A520"],["Prof. Gurmeet Kaur","A521"],
-  ]},
-  {no:4,name:"24CS3512 — Introduction to XR & Immersive Technologies",rows:[["Dr. J.S. Nixon","A522"]]},
-];
-
-/* ===================== CATEGORIZATION ===================== */
-function categorize(label){
-  const s = label.toUpperCase();
-  if(/MOOC|SPORTS|LIBRARY|MENTOR|OFFICE/.test(s)) return 'free';
-  if(/PE-1/.test(s)) return 'skiphigh';
-  if(/CTS/.test(s)) return 'skiplow';
-  return 'fixed';
-}
-const CAT_LEVEL = {free:3, skiphigh:2, skiplow:1, fixed:0};
-const CAT_LABEL = {free:'FREE', skiphigh:'SKIP · PE-1', skiplow:'SKIP · CTS'};
-
-function catClass(cat){ return 'cat-'+cat; }
-
-/* ===================== SECTION VIEW ===================== */
-const secKeys = Object.keys(SECTIONS);
-let currentSection = 'H';
-
-function buildPigeonholes(){
-  const el = document.getElementById('pigeonholes');
-  el.innerHTML='';
-  secKeys.forEach(k=>{
-    const btn=document.createElement('div');
-    btn.className='tag'+(k===currentSection?' active':'');
-    btn.innerHTML = '5'+k+'<small>'+SECTIONS[k].room.split(',')[0].trim()+'</small>';
-    btn.onclick=()=>{ currentSection=k; renderSection(); };
-    el.appendChild(btn);
-  });
-}
-
-function renderSection(){
-  buildPigeonholes();
-  const d = SECTIONS[currentSection];
-  document.getElementById('secTitle').textContent = 'Section 5'+currentSection;
-  document.getElementById('secMeta').innerHTML =
-    'Advisor: <b>'+d.advisor+'</b> &nbsp;·&nbsp; Room: <b>'+d.room+'</b>';
-
-  const table = document.getElementById('secTable');
-  table.innerHTML = buildGridHTML([{key:currentSection,data:d}], false);
-
-  const cb = document.getElementById('courseBody');
-  cb.innerHTML='';
-  d.courses.forEach(c=>{
-    const tr=document.createElement('tr');
-    tr.innerHTML = '<td class="code">'+c.code+'</td><td>'+c.name+'</td><td>'+c.faculty+'</td>';
-    cb.appendChild(tr);
-    (c.labs||[]).forEach(l=>{
-      const lr=document.createElement('tr');
-      lr.className='lab';
-      lr.innerHTML = '<td class="code">'+l.tag+'</td><td colspan="1"></td><td>'+l.faculty+'</td>';
-      cb.appendChild(lr);
-    });
-  });
-}
-
-/* Build a single-section (or dual-section overlay) grid table */
-function buildGridHTML(sectionsArr, overlay){
-  let html = '<thead><tr><th class="daycol">Day</th>';
-  PERIODS.forEach((p,i)=>{
-    html += '<th>'+p.label+'<span class="t">'+p.start+' – '+p.end+'</span></th>';
-    if(i===1) html += '<th class="breakcol"></th>';
-    if(i===3) html += '<th class="breakcol"></th>';
-  });
-  html += '</tr></thead><tbody>';
-
-  DAYS.forEach(day=>{
-    html += '<tr><td class="daycol">'+day+'</td>';
-    for(let i=0;i<7;i++){
-      if(overlay){
-        const [a,b] = sectionsArr;
-        const la = a.data.days[day][i], lb = b.data.days[day][i];
-        const ca = categorize(la), cb_ = categorize(lb);
-        const score = Math.min(CAT_LEVEL[ca], CAT_LEVEL[cb_]);
-        const cls = score===3?'cat-free':score===2?'cat-skiphigh':score===1?'cat-skiplow':'cat-fixed';
-        html += '<td class="cell '+cls+'"><div class="lbl">5'+a.key+': '+la+'</div><div class="lbl">5'+b.key+': '+lb+'</div>'+
-                (score>0?'<span class="stamp">'+(score===3?'both free':score===2?'both flex':'skip low')+'</span>':'')+'</td>';
-      } else {
-        const label = sectionsArr[0].data.days[day][i];
-        const cat = categorize(label);
-        html += '<td class="cell '+catClass(cat)+'"><div class="lbl">'+label+'</div>'+
-                (CAT_LABEL[cat]?'<span class="stamp">'+CAT_LABEL[cat]+'</span>':'')+'</td>';
-      }
-      if(i===1) html += '<td class="breakcol"></td>';
-      if(i===3) html += '<td class="breakcol"></td>';
-    }
-    html += '</tr>';
-  });
-  html += '</tbody>';
-  return html;
-}
-
-/* ===================== SYNC / COMPARE VIEW ===================== */
-function buildSelectors(){
-  const a = document.getElementById('secA'), b = document.getElementById('secB');
-  secKeys.forEach(k=>{
-    const oa=document.createElement('option'); oa.value=k; oa.textContent='Section 5'+k; a.appendChild(oa);
-    const ob=document.createElement('option'); ob.value=k; ob.textContent='Section 5'+k; b.appendChild(ob);
-  });
-  a.value='H'; b.value='L';
-  a.onchange=renderCompare; b.onchange=renderCompare;
-}
-
-function renderCompare(){
-  const ak = document.getElementById('secA').value;
-  const bk = document.getElementById('secB').value;
-  const A = {key:ak,data:SECTIONS[ak]}, B = {key:bk,data:SECTIONS[bk]};
-
-  document.getElementById('rankHeading').textContent =
-    'Best class-time windows, 5'+ak+' × 5'+bk+' (Monday–Saturday)';
-
-  // compute per-day windows
-  let windows = [];
-  DAYS.forEach(day=>{
-    let i=0;
-    while(i<7){
-      const la=A.data.days[day][i], lb=B.data.days[day][i];
-      const score = Math.min(CAT_LEVEL[categorize(la)], CAT_LEVEL[categorize(lb)]);
-      if(score>0){
-        let j=i;
-        while(j+1<7){
-          const la2=A.data.days[day][j+1], lb2=B.data.days[day][j+1];
-          const s2 = Math.min(CAT_LEVEL[categorize(la2)], CAT_LEVEL[categorize(lb2)]);
-          if(s2===score) j++; else break;
-        }
-        windows.push({day, start:i, end:j, score});
-        i=j+1;
-      } else { i++; }
-    }
-  });
-  windows.sort((x,y)=> y.score-x.score || (y.end-y.start)-(x.end-x.start));
-
-  const list = document.getElementById('rankList');
-  list.innerHTML='';
-  if(windows.length===0){
-    list.innerHTML = '<li class="rank-item">No overlapping free/flexible class-time windows this week — lean on the daily anchors above.</li>';
-  }
-  windows.forEach((w,idx)=>{
-    const li=document.createElement('li');
-    li.className='rank-item';
-    const startT = PERIODS[w.start].start, endT = PERIODS[w.end].end;
-    const scoreLabel = w.score===3?'Both fully free':w.score===2?'Both flexible':'One low-priority skip';
-    const why = w.score===3
-      ? '5'+ak+': '+A.data.days[w.day][w.start]+'  ·  5'+bk+': '+B.data.days[w.day][w.start]
-      : '5'+ak+': '+A.data.days[w.day].slice(w.start,w.end+1).join(' → ')+'  ·  5'+bk+': '+B.data.days[w.day].slice(w.start,w.end+1).join(' → ');
-    li.innerHTML =
-      '<div class="rank-num">'+(idx+1)+'</div>'+
-      '<div class="rank-body"><div class="rank-when">'+w.day+', '+startT+' – '+endT+'</div>'+
-      '<div class="rank-why">'+why+'</div></div>'+
-      '<div class="rank-score score-'+w.score+'">'+scoreLabel+'</div>';
-    list.appendChild(li);
-  });
-
-  const table = document.getElementById('compareTable');
-  table.innerHTML = buildGridHTML([A,B], true);
-}
-
-/* ===================== ELECTIVES VIEW ===================== */
-function renderElectives(){
-  const tbody = document.querySelector('#electiveTbl tbody');
-  tbody.innerHTML='';
-  ELECTIVES.forEach(e=>{
-    e.rows.forEach((r,idx)=>{
-      const tr=document.createElement('tr');
-      tr.innerHTML = (idx===0?'<td class="code">'+e.no+'</td><td>'+e.name+'</td>':'<td></td><td></td>')+
-                     '<td>'+r[0]+'</td><td>'+r[1]+'</td>';
-      tbody.appendChild(tr);
-    });
-  });
-}
-
-/* ===================== NAV ===================== */
-document.querySelectorAll('.navbtn').forEach(btn=>{
-  btn.onclick=()=>{
-    document.querySelectorAll('.navbtn').forEach(b=>b.classList.remove('active'));
-    document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
-    btn.classList.add('active');
-    document.getElementById('view-'+btn.dataset.view).classList.add('active');
-  };
-});
-
-/* ===================== INIT ===================== */
-buildSelectors();
-renderCompare();
-renderSection();
-renderElectives();
-</script>
+  <!-- Scripts -->
+  <script src="scripts/data.js"></script>
+  <script src="scripts/sound.js"></script>
+  <script src="scripts/particles.js"></script>
+  <script src="scripts/engine.js"></script>
 </body>
 </html>

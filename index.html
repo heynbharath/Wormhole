@@ -4,215 +4,220 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Wormhole — Autonomous Spacetime Coordination Engine</title>
-  <meta name="description" content="YC-grade zero-friction schedule intersection engine for Dayananda Sagar University CSE Sem 5.">
-  <link rel="stylesheet" href="styles/theme.css">
+  <meta name="description" content="YC-grade autonomous spacetime coordination operating system for university schedules, multi-section squad sync, DSU ERP attendance bunk simulation, and profile personalization.">
+
+  <!-- Google Fonts: Inter & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <!-- Obsidian Void Design System -->
+  <link rel="stylesheet" href="styles/main.css">
   <link rel="stylesheet" href="styles/components.css">
 </head>
 <body>
 
-  <!-- Top Minimalist Navigation -->
+  <!-- Navigation Bar -->
   <header class="app-nav">
     <div class="container nav-layout">
       <a href="#" class="brand-wrap">
-        <div class="brand-icon">⌘</div>
-        <span>Wormhole</span>
-        <span class="badge-version">v4.0 · DSU</span>
+        <div class="brand-icon">⚡</div>
+        <span>WORMHOLE</span>
+        <span class="badge-version">v5.0 FLAGSHIP</span>
       </a>
 
       <div class="nav-controls">
-        <button class="nav-btn" onclick="window.openCommandPalette()" title="Press ⌘K or Ctrl+K">
-          🔍 Search <span class="kbd-badge">⌘K</span>
+        <button class="nav-btn" onclick="openProfileModal()">
+          <span>👤</span> <span id="profileNavTag">Profile: 5H2</span>
         </button>
-
-        <div class="status-pill">
-          <span class="status-dot"></span>
-          <span id="liveClockTime">--:--:--</span>
-          <span style="opacity:0.3;">/</span>
-          <span id="livePeriodStatus" style="color:var(--text-main); font-weight:500;">Syncing...</span>
-        </div>
-
-        <button id="audioToggleBtn" class="nav-btn" title="Press Space to Toggle Audio">
+        <button class="nav-btn" onclick="openAttendanceModal()">
+          <span>📊</span> <span id="attendanceNavTag">DSU ERP Sync</span>
+        </button>
+        <button class="nav-btn" onclick="openCommandPalette()">
+          <span>⌘K</span> <span style="display:none;" class="kbd-badge">Palette</span>
+        </button>
+        <button id="audioToggleBtn" class="nav-btn">
           🔊 Audio <span class="kbd-badge">Space</span>
         </button>
       </div>
     </div>
   </header>
 
-  <!-- Minimalist Hero Section with Gravitational Singularity Canvas -->
+  <!-- Hero Canvas & Mission Header -->
   <section class="hero-wrapper">
     <canvas id="vortexCanvas"></canvas>
-
-    <div class="hero-body">
+    <div class="container hero-body">
       <div class="hero-badge">
-        <span>●</span> Dayananda Sagar University · CSE Sem 5 · Autonomous Spacetime
+        <span class="status-dot"></span>
+        Autonomous Spacetime Coordination · DSU CSE Sem 5
       </div>
-      <h1 class="hero-title">Bend Spacetime.<br>Coordinate Your Squad.</h1>
+      <h1 class="hero-title">Zero Friction Campus Time.</h1>
       <p class="hero-sub">
-        Zero-friction multi-section schedule intersection. Office hours are 100% free.<br>
-        Live campus radar beacon & instant 2–8 batch squad overlap calculation.
+        Personalized schedule routing, N-way multi-section squad free-time intersection, and real-time DSU ERP 75% attendance margin forecasting.
       </p>
-
-      <div style="display:flex; align-items:center; justify-content:center; gap:10px; flex-wrap:wrap;">
-        <button class="btn-solid" onclick="document.querySelector('[data-view=\'squad\']').click(); window.scrollTo({top: 480, behavior: 'smooth'});">
-          Launch Squad Sync →
+      <div style="display:flex; justify-content:center; gap:12px; flex-wrap:wrap;">
+        <button class="btn-solid" onclick="document.querySelector('[data-view=\'squad\']').click()">
+          ⚡ Squad Spacetime Sync
         </button>
-        <button class="btn-outline" onclick="window.openCommandPalette();">
-          Quick Command <span class="kbd-badge" style="background:rgba(255,255,255,0.15); color:#FFF;">⌘K</span>
+        <button class="btn-outline" onclick="openAttendanceModal()">
+          📊 DSU Attendance Copilot
         </button>
       </div>
     </div>
   </section>
 
-  <!-- Main Workspace -->
-  <main class="container">
+  <!-- Main Operating Console -->
+  <main class="container" style="position:relative; z-index:10; margin-top:-10px;">
 
-    <!-- Quantum Beacon Live Campus Radar HUD -->
-    <section class="radar-hud">
+    <!-- Student Profile Personalization Strip -->
+    <div class="profile-bar">
+      <div class="profile-meta-wrap">
+        <div class="profile-tag">
+          Student: <b id="profileStudentName">N BHARATH</b>
+        </div>
+        <div class="profile-tag">
+          USN: <b id="profileStudentUsn">ENG24CS0537</b>
+        </div>
+        <div class="profile-tag">
+          Division: <b id="profileStudentSection">Section 5H</b>
+        </div>
+        <div class="profile-tag">
+          Lab Batch: <b id="profileStudentBatch">Batch 5H2</b>
+        </div>
+        <div class="profile-tag">
+          PE-1: <b id="profileStudentElective">AI for Business Analytics (Prof. Gowtham)</b>
+        </div>
+      </div>
+      <button class="nav-btn" onclick="openProfileModal()" style="color:var(--accent-indigo); border-color:rgba(99,102,241,0.4);">
+        ⚙️ Customize Profile
+      </button>
+    </div>
+
+    <!-- Live Quantum Beacon Radar HUD -->
+    <div class="radar-hud">
       <div class="radar-card">
         <div class="radar-title">
-          <span>Active Period Radar</span>
-          <span class="status-dot animate-pulse"></span>
+          <span>LIVE BEACON CLOCK</span>
+          <span class="status-dot"></span>
         </div>
-        <div id="beaconCountdown" class="radar-value">Calculating...</div>
-        <div class="radar-sub">Real-time interval countdown</div>
+        <div class="radar-value" id="liveClockTime">--:--:--</div>
+        <div class="radar-sub" id="livePeriodStatus">Scanning campus frequency...</div>
       </div>
 
       <div class="radar-card">
         <div class="radar-title">
-          <span>Free Right Now Across Campus</span>
-          <span class="kbd-badge" style="color:var(--free-text);">100% FREE</span>
+          <span>PERIOD COUNTDOWN</span>
+          <span id="beaconCountdownTag" style="font-size:10px; color:var(--text-dim);">T-MINUS</span>
         </div>
-        <div id="beaconFreeSections" class="beacon-chips-wrap">
-          <span style="color:var(--text-dim); font-size:12px;">Scanning 12 sections...</span>
-        </div>
+        <div class="radar-value" id="beaconCountdown">--m --s remaining</div>
+        <div class="radar-sub">Auto-synchronized with DSU lecture bell ringing</div>
       </div>
 
       <div class="radar-card">
         <div class="radar-title">
-          <span>Shared Lunch Nexus</span>
-          <span class="kbd-badge">75 MIN</span>
+          <span>100% FREE RIGHT NOW</span>
+          <span style="font-size:10px; color:var(--free-text);">ZERO FRICTION</span>
         </div>
-        <div class="radar-value">12:35 PM – 01:50 PM</div>
-        <div class="radar-sub">Guaranteed daily alignment across all batches</div>
-      </div>
-    </section>
-
-    <!-- Segmented View Switcher -->
-    <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px; margin-bottom:20px;">
-      <div class="segmented-nav">
-        <button class="seg-btn active" data-view="squad">Squad Sync (2-8 Batches) <span class="kbd-badge">1</span></button>
-        <button class="seg-btn" data-view="chronos">Chronos Grid (Single Batch) <span class="kbd-badge">2</span></button>
-        <button class="seg-btn" data-view="electives">PE-1 Electives <span class="kbd-badge">3</span></button>
-        <button class="seg-btn" data-view="docs">Engineering Specs <span class="kbd-badge">4</span></button>
+        <div class="beacon-chips-wrap" id="beaconFreeSections">
+          <span style="color:var(--text-dim); font-size:12px;">Computing live section states...</span>
+        </div>
       </div>
 
-      <div style="font-family:var(--font-mono); font-size:11px; color:var(--text-dim);">
-        Shortcuts: <span class="kbd-badge">1–4</span> Views · <span class="kbd-badge">A–L</span> Section · <span class="kbd-badge">⌘K</span> Search
+      <div class="radar-card" onclick="openAttendanceModal()" style="cursor:pointer;">
+        <div class="radar-title">
+          <span>DSU ERP ATTENDANCE</span>
+          <span id="overallAttendanceStatusBadge" class="status-pill safe" style="padding:2px 8px; font-size:10px;">SAFE</span>
+        </div>
+        <div class="radar-value" id="overallAttendancePct">88.24%</div>
+        <div class="radar-sub" id="overallAttendanceSummary">
+          <span id="overallPresentSlots">15 Present</span> · <span id="overallAbsentSlots">2 Absent</span> · <span id="overallConductedSlots">17 Total</span>
+        </div>
       </div>
     </div>
 
-    <!-- VIEW 1: SQUAD SYNC (Multi-Section 2-8 Batches) -->
+    <!-- View Switcher -->
+    <div class="segmented-nav">
+      <button class="seg-btn active" data-view="squad">👥 Squad Sync (N-Way Overlap)</button>
+      <button class="seg-btn" data-view="chronos">📅 Chronos Grid (Section Matrix)</button>
+      <button class="seg-btn" data-view="electives">🎯 Electives (PE-1 Tracks)</button>
+      <button class="seg-btn" data-view="docs">📜 YC Philosophy & Architecture</button>
+    </div>
+
+    <!-- VIEW 1: MULTI-SECTION SQUAD SYNC -->
     <section id="panel-squad" class="view-panel active">
       <div class="card-minimal squad-header-card">
         <div class="squad-chips-wrap">
-          <span style="font-family:var(--font-mono); font-size:11.5px; color:var(--text-dim); margin-right:4px;">Active Squad:</span>
-          <div id="squadChipsContainer" style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;"></div>
+          <div style="font-family:var(--font-mono); font-size:12px; color:var(--text-dim); text-transform:uppercase;">
+            Active Squad:
+          </div>
+          <div id="squadChipsContainer" style="display:flex; gap:6px; flex-wrap:wrap;"></div>
           <select id="addSquadSectionSelect" class="select-minimal"></select>
         </div>
 
-        <div style="display:flex; align-items:center; gap:10px;">
-          <div id="squadSyncScoreBadge" class="sync-score-badge">Computing...</div>
-          <button id="copyShareLinkBtn" class="btn-outline" style="font-size:12px; padding:6px 12px;">
+        <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+          <div id="squadSyncScoreBadge" class="sync-score-badge">Computing Alignment...</div>
+          <button id="whatsappBroadcastBtn" class="nav-btn" style="color:#25D366; border-color:rgba(37,211,102,0.3);">
+            📲 Copy WhatsApp Invite
+          </button>
+          <button id="copyShareLinkBtn" class="nav-btn">
             🔗 Share Squad Link
           </button>
         </div>
       </div>
 
-      <!-- Ranked Overlaps Feed -->
-      <div style="display:flex; align-items:center; justify-content:space-between; margin-top:24px;">
-        <h3 style="font-size:15px; font-weight:600; color:var(--text-main);">Ranked Collective Free Windows</h3>
-        <span style="font-family:var(--font-mono); font-size:11.5px; color:var(--text-dim);">When everyone in the squad is available</span>
+      <div style="margin-top:20px;">
+        <h3 style="font-size:16px; font-weight:700; margin-bottom:12px; display:flex; align-items:center; gap:8px;">
+          <span>⚡ Ranked Friction-Free Rendezvous Windows</span>
+          <small style="font-weight:400; font-size:12px; color:var(--text-dim);">(Automated N-Way Intersection)</small>
+        </h3>
+        <ul id="squadRankList" class="rank-feed"></ul>
       </div>
 
-      <ul id="squadRankList" class="rank-feed"></ul>
-
-      <!-- Multi-Squad Heatmap Matrix -->
-      <div style="display:flex; align-items:center; justify-content:space-between; margin-top:28px;">
-        <h3 style="font-size:15px; font-weight:600; color:var(--text-main);">Collective Spacetime Matrix</h3>
-      </div>
-      <div class="matrix-container">
-        <table id="squadOverlayTable" class="matrix-table"></table>
+      <div style="margin-top:28px;">
+        <h3 style="font-size:16px; font-weight:700; margin-bottom:12px;">
+          🌌 Squad Collective Space-Time Matrix
+        </h3>
+        <div class="matrix-container">
+          <table id="squadOverlayTable" class="matrix-table"></table>
+        </div>
       </div>
     </section>
 
     <!-- VIEW 2: CHRONOS MATRIX (Single Section) -->
     <section id="panel-chronos" class="view-panel">
-      <!-- Section Selector -->
       <div class="section-strip" id="sectionPigeonholes"></div>
 
-      <!-- Header Card with Attendance Friction Stats & ICS Export -->
-      <div class="card-minimal" style="padding:18px 20px; margin-bottom:16px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:14px;">
+      <div class="card-minimal" style="padding:18px 20px; margin-bottom:16px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
         <div>
-          <h2 id="chronosSectionTitle" style="font-size:18px; font-weight:700; color:var(--text-main);">Section 5H</h2>
-          <p id="chronosSectionMeta" style="font-size:12.5px; color:var(--text-muted); margin-top:2px;"></p>
+          <h2 id="chronosSectionTitle" style="font-size:20px; font-weight:700; letter-spacing:-0.02em;">Section 5H</h2>
+          <div id="chronosSectionMeta" style="font-size:12.5px; color:var(--text-muted); margin-top:2px;"></div>
         </div>
-
-        <div style="display:flex; align-items:center; gap:16px; flex-wrap:wrap;">
-          <div style="display:flex; align-items:center; gap:10px;">
-            <div style="text-align:right;">
-              <div style="font-family:var(--font-mono); font-size:10px; color:var(--text-dim); text-transform:uppercase;">100% Free Time</div>
-              <div id="analyticsFreeHours" style="font-size:14px; font-weight:700; color:var(--free-text);">-- hrs</div>
-            </div>
-            <div style="text-align:right; margin-left:8px;">
-              <div style="font-family:var(--font-mono); font-size:10px; color:var(--text-dim); text-transform:uppercase;">PE-1 Flex Shift</div>
-              <div id="analyticsFlexHours" style="font-size:14px; font-weight:700; color:var(--flex-text);">-- hrs</div>
-            </div>
+        <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
+          <div style="font-family:var(--font-mono); font-size:12px; color:var(--text-dim);">
+            Free: <b id="analyticsFreeHours" style="color:var(--free-text);">0.0 hrs</b> · Flex: <b id="analyticsFlexHours" style="color:var(--flex-text);">0.0 hrs</b>
           </div>
-
-          <button id="exportIcsBtn" class="btn-outline" style="font-size:12.5px; padding:6px 14px;">
-            📅 Add to Calendar (.ICS)
+          <button id="exportIcsBtn" class="nav-btn">
+            📅 Export to Apple/Google Calendar (.ics)
           </button>
         </div>
       </div>
 
-      <!-- Clean Minimal Legend -->
-      <div class="card-minimal legend-bar">
-        <div class="legend-unit">
-          <span class="legend-point" style="background:var(--free-dot);"></span>
-          <span>100% Free (Office, MOOC, Sports, Library, Mentor)</span>
-        </div>
-        <div class="legend-unit">
-          <span class="legend-point" style="background:var(--flex-dot);"></span>
-          <span>Flex Elective Shift (PE-1)</span>
-        </div>
-        <div class="legend-unit">
-          <span class="legend-point" style="background:var(--skip-dot);"></span>
-          <span>Low Friction Skip (CTS)</span>
-        </div>
-        <div class="legend-unit">
-          <span class="legend-point" style="background:rgba(255,255,255,0.15);"></span>
-          <span>Core Subject / Lab</span>
-        </div>
-      </div>
-
-      <!-- Matrix Grid -->
       <div class="matrix-container">
         <table id="chronosTimetable" class="matrix-table"></table>
       </div>
 
-      <!-- Course & Faculty Directory -->
+      <!-- Faculty Directory -->
       <div class="directory-wrap">
         <div class="dir-header">
-          <h3 style="font-size:15px; font-weight:600; color:var(--text-main);">Faculty & Course Allocation</h3>
-          <input type="text" id="facultySearchInput" class="input-minimal" placeholder="Filter courses or faculty...">
+          <h3 style="font-size:16px; font-weight:700;">Faculty & Course Directory</h3>
+          <input type="text" id="facultySearchInput" class="input-minimal" placeholder="Filter by faculty, code (24CS3501), or topic...">
         </div>
-
         <table class="dir-table">
           <thead>
             <tr>
-              <th style="width:130px;">Code</th>
-              <th>Course Name</th>
-              <th>Faculty In-Charge & Lab Team</th>
+              <th>Course Code</th>
+              <th>Course Title</th>
+              <th>Faculty Name</th>
             </tr>
           </thead>
           <tbody id="directoryTableBody"></tbody>
@@ -220,87 +225,186 @@
       </div>
     </section>
 
-    <!-- VIEW 3: PE-1 ELECTIVES -->
+    <!-- VIEW 3: ELECTIVES -->
     <section id="panel-electives" class="view-panel">
-      <div class="card-minimal" style="padding:20px; margin-bottom:16px;">
-        <h2 style="font-size:17px; font-weight:700; color:var(--text-main);">Professional Electives (PE-1) Directory</h2>
-        <p style="font-size:13px; color:var(--text-muted); margin-top:4px;">
-          Synchronized across all 12 sections on <b style="color:var(--text-main);">Tuesday 7th Period</b> and <b style="color:var(--text-main);">Thursday 5th & 6th Periods</b>.
+      <div class="card-minimal" style="padding:20px; margin-bottom:20px;">
+        <h2 style="font-size:18px; font-weight:700; margin-bottom:6px;">Program Elective 1 (PE-1) Tracks & Venues</h2>
+        <p style="font-size:13px; color:var(--text-muted);">
+          All PE-1 electives run simultaneously on <b style="color:var(--text-main);">Tuesday (08:30 – 10:20)</b> and <b style="color:var(--text-main);">Thursday (08:30 – 10:20)</b>.
         </p>
       </div>
 
       <table class="dir-table">
         <thead>
           <tr>
-            <th style="width:90px;">Track</th>
-            <th>Elective Name</th>
-            <th>Faculty</th>
-            <th style="width:100px;">Room</th>
+            <th>Track</th>
+            <th>Specialization</th>
+            <th>Faculty Mentor</th>
+            <th>Assigned Classroom</th>
           </tr>
         </thead>
         <tbody id="electivesTableBody"></tbody>
       </table>
     </section>
 
-    <!-- VIEW 4: ENGINEERING SPECS -->
+    <!-- VIEW 4: DOCS & ARCHITECTURE -->
     <section id="panel-docs" class="view-panel">
-      <div class="card-minimal" style="padding:24px;">
-        <h2 style="font-size:20px; font-weight:700; color:var(--text-main); margin-bottom:8px;">
-          Engineering Specs & Product Documentation
-        </h2>
-        <p style="color:var(--text-muted); font-size:13.5px; margin-bottom:20px;">
-          Wormhole is built as a zero-dependency, ultra-lightweight client-side SPA.
+      <div class="card-minimal" style="padding:28px;">
+        <h2 style="font-size:22px; font-weight:800; margin-bottom:14px;">The WORMHOLE Manifesto</h2>
+        <p style="font-size:14px; color:var(--text-muted); line-height:1.7; margin-bottom:16px;">
+          Wormhole was engineered with a singular focus: eliminate university scheduling friction. Students at Dayananda Sagar University operate across 12 distinct sections (5A through 5L), 6 elective tracks, and split lab batches. Finding common meeting slots for hackathons, club meetings, and lunch was historically a 20-minute manual negotiation.
         </p>
-
-        <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:12px;">
-          <a href="PHILOSOPHY.md" target="_blank" class="card-minimal" style="padding:16px; text-decoration:none; display:block;">
-            <div style="font-family:var(--font-mono); font-size:10.5px; color:var(--accent-indigo);">MANIFESTO</div>
-            <div style="font-size:14px; font-weight:600; color:var(--text-main); margin:4px 0;">Product Philosophy →</div>
-            <div style="font-size:12px; color:var(--text-dim);">The thesis behind frictionless campus coordination.</div>
-          </a>
-
-          <a href="DESIGN_SYSTEM.md" target="_blank" class="card-minimal" style="padding:16px; text-decoration:none; display:block;">
-            <div style="font-family:var(--font-mono); font-size:10.5px; color:var(--accent-violet);">TOKENS & UX</div>
-            <div style="font-size:14px; font-weight:600; color:var(--text-main); margin:4px 0;">Design System →</div>
-            <div style="font-size:12px; color:var(--text-dim);">Obsidian palette, hairline cards & typography.</div>
-          </a>
-
-          <a href="ARCHITECTURE.md" target="_blank" class="card-minimal" style="padding:16px; text-decoration:none; display:block;">
-            <div style="font-family:var(--font-mono); font-size:10.5px; color:var(--free-text);">ENGINEERING</div>
-            <div style="font-size:14px; font-weight:600; color:var(--text-main); margin:4px 0;">Technical Specs →</div>
-            <div style="font-size:12px; color:var(--text-dim);">N-way Squad intersection & Web Audio synthesis.</div>
-          </a>
-
-          <a href="ROADMAP.md" target="_blank" class="card-minimal" style="padding:16px; text-decoration:none; display:block;">
-            <div style="font-family:var(--font-mono); font-size:10.5px; color:var(--flex-text);">EVOLUTION</div>
-            <div style="font-size:14px; font-weight:600; color:var(--text-main); margin:4px 0;">Roadmap →</div>
-            <div style="font-size:12px; color:var(--text-dim);">From v1.0 to v4.0 Flagship Operating System.</div>
-          </a>
-        </div>
+        <h3 style="font-size:16px; font-weight:700; margin:20px 0 8px;">Spacetime Set Intersection Algorithm</h3>
+        <p style="font-size:13.5px; color:var(--text-muted); line-height:1.6; margin-bottom:12px;">
+          Given an arbitrary subset of sections $S \subseteq \{5A, \dots, 5L\}$, Wormhole computes the $N$-way intersection across all 42 weekly slots:
+        </p>
+        <pre style="background:var(--bg-surface-elevated); padding:14px; border-radius:6px; font-family:var(--font-mono); font-size:12px; color:var(--accent-cyan); overflow-x:auto;">OverlapScore(day, t) = min_{s \in S} CategoryWeight(s, day, t)</pre>
       </div>
     </section>
 
   </main>
 
-  <!-- Command Palette Modal (⌘K) -->
+  <!-- STUDENT PROFILE MODAL -->
+  <div id="profileModal" class="cmd-backdrop">
+    <div class="cmd-box">
+      <div class="modal-header">
+        <h3 style="font-size:16px; font-weight:700;">👤 Student Personalization Profile</h3>
+        <button class="chip-remove" id="closeProfileModalBtn" style="font-size:18px;">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label class="form-label">Assigned Section</label>
+          <select id="profileSectionSelect" class="form-select">
+            <option value="A">Section 5A</option>
+            <option value="B">Section 5B</option>
+            <option value="C">Section 5C</option>
+            <option value="D">Section 5D</option>
+            <option value="E">Section 5E</option>
+            <option value="F">Section 5F</option>
+            <option value="G">Section 5G</option>
+            <option value="H" selected>Section 5H</option>
+            <option value="I">Section 5I</option>
+            <option value="J">Section 5J</option>
+            <option value="K">Section 5K</option>
+            <option value="L">Section 5L</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Lab Batch Division (Half-Section Partition)</label>
+          <select id="profileBatchSelect" class="form-select">
+            <option value="1">Batch 1 (First Half — e.g. 5H1)</option>
+            <option value="2" selected>Batch 2 (Second Half — e.g. 5H2)</option>
+          </select>
+          <small style="color:var(--text-dim); font-size:11px; display:block; margin-top:4px;">
+            Auto-resolves lab swaps (e.g. ML Lab vs GPU Architecture Lab rooms).
+          </small>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">PE-1 Elective Track</label>
+          <select id="profileElectiveSelect" class="form-select">
+            <option value="24CS3511">Track 1: Cloud Computing (24CS3511)</option>
+            <option value="24CS3512" selected>Track 2: AI for Business Analytics (24CS3512)</option>
+            <option value="24CS3513">Track 3: Deep Learning (24CS3513)</option>
+            <option value="24CS3514">Track 4: Cyber Security & SOC (24CS3514)</option>
+            <option value="24CS3515">Track 5: Extended Reality XR (24CS3515)</option>
+            <option value="24CS3516">Track 6: Computer Graphics & Animation (24CS3516)</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Assigned PE-1 Faculty Mentor & Venue</label>
+          <select id="profileElectiveFacultySelect" class="form-select">
+            <!-- Dynamically populated -->
+          </select>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-solid" id="saveProfileBtn">Save Profile</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- DSU ERP ATTENDANCE & BUNK SIMULATOR MODAL -->
+  <div id="attendanceModal" class="cmd-backdrop">
+    <div class="cmd-box" style="max-width:820px;">
+      <div class="modal-header">
+        <div style="display:flex; align-items:center; gap:10px;">
+          <h3 style="font-size:16px; font-weight:700;">📊 DSU ERP Attendance & 75% Bunk Simulator</h3>
+          <span class="badge-version">ums.mydsi.org</span>
+        </div>
+        <button class="chip-remove" id="closeAttendanceModalBtn" style="font-size:18px;">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div style="margin-bottom:16px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+          <p style="font-size:12.5px; color:var(--text-muted); margin:0;">
+            Real-time status based on Dayananda Sagar University ERP. Click <b style="color:var(--free-text);">+1</b> or <b style="color:#EF4444;">-1</b> to simulate future classes.
+          </p>
+          <div style="display:flex; gap:8px;">
+            <a id="dsuBookmarkletLink" class="nav-btn" href="#" style="color:var(--accent-cyan); font-size:11px;" title="Drag this to your browser bookmarks bar">
+              ⭐ 1-Click ERP Bookmarklet
+            </a>
+            <button id="resetAttendanceBtn" class="nav-btn" style="font-size:11px;">
+              ↺ Reset
+            </button>
+          </div>
+        </div>
+
+        <!-- Attendance Table -->
+        <div class="matrix-container" style="margin:0 0 16px;">
+          <table class="dir-table" style="font-size:12px;">
+            <thead>
+              <tr>
+                <th>Code</th>
+                <th>Course</th>
+                <th>Total</th>
+                <th>Pres</th>
+                <th>Abs</th>
+                <th>Pct</th>
+                <th>75% Bunk Margin</th>
+                <th>Simulate</th>
+              </tr>
+            </thead>
+            <tbody id="attendanceModalTableBody"></tbody>
+          </table>
+        </div>
+
+        <!-- Raw Text / Report Parser -->
+        <details style="margin-top:12px; background:var(--bg-surface); padding:12px; border-radius:6px; border:1px solid var(--border-subtle);">
+          <summary style="font-size:12px; font-weight:600; color:var(--text-muted); cursor:pointer;">
+            📋 Paste Raw Report or Text from ums.mydsi.org
+          </summary>
+          <div style="margin-top:10px;">
+            <textarea id="attendancePasteArea" class="form-textarea" rows="4" placeholder="Paste the downloaded text from DSU ERP or table here (e.g. 24CS3501 GPU Architecture 3 3 0)..."></textarea>
+            <div style="margin-top:8px; text-align:right;">
+              <button id="parseAttendanceTextBtn" class="btn-solid" style="padding:6px 14px; font-size:12px;">
+                ⚡ Parse & Sync Attendance
+              </button>
+            </div>
+          </div>
+        </details>
+      </div>
+    </div>
+  </div>
+
+  <!-- COMMAND PALETTE (⌘K) -->
   <div id="commandPaletteModal" class="cmd-backdrop">
     <div class="cmd-box">
       <div class="cmd-input-wrap">
-        <span style="color:var(--text-dim);">🔍</span>
-        <input type="text" id="cmdSearchInput" class="cmd-input" placeholder="Type a section, course, professor, or action...">
-        <span class="kbd-badge">ESC to close</span>
+        <span style="color:var(--text-dim);">⌘</span>
+        <input type="text" id="cmdSearchInput" class="cmd-input" placeholder="Search section (5A-5L), faculty, course code, or action...">
+        <span class="kbd-badge">ESC</span>
       </div>
       <div id="cmdSearchResults" class="cmd-results"></div>
     </div>
   </div>
 
-  <!-- Minimalist Footer -->
+  <!-- Footer -->
   <footer class="app-footer">
-    <div class="container">
-      <p class="footer-copy">
-        WORMHOLE · Department of Computer Science & Engineering · Dayananda Sagar University<br>
-        Odd Semester 2026–27 · 100% Client-Side Engine · Zero Dependencies · Office Hours are 100% Free
-      </p>
+    <div class="container footer-copy">
+      WORMHOLE Autonomous Spacetime Engine · Dayananda Sagar University CSE Sem 5<br>
+      Engineered for maximum velocity, craft, and zero friction · Built with Obsidian Void MDS v3.0
     </div>
   </footer>
 
