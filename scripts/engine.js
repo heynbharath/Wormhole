@@ -886,86 +886,155 @@ class WormholeApp {
   renderSquadSync() {
     const sectionsArr = this.squad.map((k) => ({ key: k, data: SECTIONS[k] }));
 
-    // Calculate N-way set intersection
-    const windows = [];
-    let sharedFreeSlotsCount = 0;
+    // ── Step 1: For each day, compute per-slot minimum score across all squad sections
+    const DAY_SCORE_ORDER = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+    const DAY_LABEL = { Mon: "Monday", Tue: "Tuesday", Wed: "Wednesday", Thu: "Thursday", Fri: "Friday", Sat: "Saturday" };
 
-    DAYS.forEach((day) => {
-      let i = 0;
-      while (i < 7) {
-        // Find minimum score across all squad sections for this slot
+    const dayMap = {}; // day → { slots: [{idx, minScore, labels}], windows: [{start, end, score}] }
+
+    DAY_SCORE_ORDER.forEach((day) => {
+      const slotScores = [];
+      for (let i = 0; i < 7; i++) {
         const scores = sectionsArr.map((s) => CAT_LEVELS[categorizePeriod(s.data.days[day][i])]);
         const minScore = Math.min(...scores);
+        const rawLabels = sectionsArr.map((s) => s.data.days[day][i]);
+        slotScores.push({ idx: i, minScore, rawLabels });
+      }
 
-        if (minScore > 0) {
-          sharedFreeSlotsCount++;
+      // ── Step 2: Merge contiguous slots with same minScore > 0 into windows
+      const windows = [];
+      let i = 0;
+      while (i < 7) {
+        if (slotScores[i].minScore > 0) {
           let j = i;
-          while (j + 1 < 7) {
-            const nextScores = sectionsArr.map((s) => CAT_LEVELS[categorizePeriod(s.data.days[day][j + 1])]);
-            const nextMin = Math.min(...nextScores);
-            if (nextMin === minScore) {
-              sharedFreeSlotsCount++;
-              j++;
-            } else break;
-          }
-          windows.push({ day, start: i, end: j, score: minScore });
+          while (j + 1 < 7 && slotScores[j + 1].minScore === slotScores[i].minScore) j++;
+          windows.push({ start: i, end: j, score: slotScores[i].minScore });
           i = j + 1;
         } else {
           i++;
         }
       }
+
+      // ── Step 3: Also detect adjacent windows with different scores → merge into day summary
+      dayMap[day] = { slotScores, windows };
     });
 
-    // Compute collective alignment score percentage
+    // ── Step 4: Build per-day summary cards (one card per day, showing all its windows)
+    const dayCards = [];
+    let sharedFreeSlotsCount = 0;
+
+    DAY_SCORE_ORDER.forEach((day) => {
+      const { windows } = dayMap[day];
+      if (windows.length === 0) return;
+
+      sharedFreeSlotsCount += windows.reduce((sum, w) => sum + (w.end - w.start + 1), 0);
+
+      // Best score across all windows on this day
+      const bestScore = Math.max(...windows.map((w) => w.score));
+
+      // Total free periods on this day
+      const totalFreePeriods = windows.reduce((sum, w) => sum + (w.end - w.start + 1), 0);
+
+      dayCards.push({ day, windows, bestScore, totalFreePeriods });
+    });
+
+    // ── Step 5: Sort by bestScore DESC, then totalFreePeriods DESC
+    dayCards.sort((a, b) => b.bestScore - a.bestScore || b.totalFreePeriods - a.totalFreePeriods);
+
+    // ── Step 6: Collective alignment badge
     const squadAlignment = Math.min(98, Math.round(50 + (sharedFreeSlotsCount / 12) * 45));
     const scoreBadge = document.getElementById("squadSyncScoreBadge");
-    if (scoreBadge) {
-      scoreBadge.textContent = `${squadAlignment}% Collective Alignment`;
-    }
+    if (scoreBadge) scoreBadge.textContent = `${squadAlignment}% Collective Alignment`;
 
-    windows.sort((x, y) => y.score - x.score || y.end - y.start - (x.end - x.start));
-
+    // ── Step 7: Render day cards
     const rankList = document.getElementById("squadRankList");
-    if (rankList) {
-      rankList.innerHTML = "";
-      if (windows.length === 0) {
-        rankList.innerHTML = `
-          <li class="card-minimal rank-item" style="justify-content:center; color:var(--text-dim); padding:20px;">
-            No direct class overlaps across all ${this.squad.length} sections — utilize morning break (10:20 AM) and lunch (12:35 PM).
-          </li>
-        `;
-      } else {
-        if (windows.some((w) => w.score === 3)) WormholeAudio.resonance();
+    if (!rankList) return;
+    rankList.innerHTML = "";
 
-        windows.forEach((w, idx) => {
-          const li = document.createElement("li");
-          li.className = "card-minimal rank-item";
-          const startT = PERIODS[w.start].displayStart;
-          const endT = PERIODS[w.end].displayEnd;
-          const tierClass = `tier-${w.score}`;
-          const scoreLabel =
-            w.score === 3
-              ? "All Free (MOOC / Office)"
-              : w.score === 2
-              ? "PE-1 Elective Overlap"
-              : "CTS Low Friction";
-
-          const details = sectionsArr
-            .map((s) => `5${s.key}: ${s.data.days[w.day].slice(w.start, w.end + 1).join(" ")}`)
-            .join(" · ");
-
-          li.innerHTML = `
-            <div class="rank-num">0${idx + 1}</div>
-            <div class="rank-main">
-              <div class="rank-header">${w.day}, ${startT} – ${endT}</div>
-              <div class="rank-sub">${details}</div>
-            </div>
-            <div class="tier-pill ${tierClass}">${scoreLabel}</div>
-          `;
-          rankList.appendChild(li);
-        });
-      }
+    if (dayCards.length === 0) {
+      rankList.innerHTML = `
+        <li class="card-minimal rank-item" style="justify-content:center; color:var(--text-dim); padding:20px;">
+          No direct free-slot overlaps across all ${this.squad.length} sections — try the 10:20 AM break or lunch window.
+        </li>
+      `;
+      return;
     }
+
+    if (dayCards.some((d) => d.bestScore === 3)) WormholeAudio.resonance();
+
+    const SCORE_LABEL = {
+      3: "All Free (MOOC / Office)",
+      2: "PE-1 Elective Overlap",
+      1: "CTS Low Friction",
+    };
+    const SCORE_CLASS = { 3: "tier-3", 2: "tier-2", 1: "tier-1" };
+
+    const humanLabel = (raw) => {
+      const r = raw.toUpperCase();
+      if (/MOOC/.test(r)) return "MOOC";
+      if (/SPORTS/.test(r)) return "Sports";
+      if (/LIBRARY/.test(r)) return "Library";
+      if (/MENTOR/.test(r)) return "Mentoring";
+      if (/OFFICE/.test(r)) return "Office Hr";
+      if (/PE-1/.test(r)) return "PE-1 Elective";
+      if (/CTS/.test(r)) return "CTS";
+      if (/SOFT\s*SKILL/.test(r)) return "Soft Skills";
+      if (/GPU/.test(r)) return "GPU Lab";
+      if (/ML/.test(r)) return "ML Lab";
+      // fallback: strip room suffix
+      return raw.replace(/[\-\s]*[A-Z]\d{2,3}.*/g, "").trim() || raw;
+    };
+
+    dayCards.forEach((dc, idx) => {
+      const li = document.createElement("li");
+      li.className = "card-minimal rank-item";
+
+      // Build window rows for this day
+      const windowRows = dc.windows.map((w) => {
+        const startT = PERIODS[w.start].displayStart;
+        const endT = PERIODS[w.end].displayEnd;
+        const duration = w.end - w.start + 1;
+        const durationLabel = duration === 1 ? "1 period" : `${duration} periods`;
+
+        // Per-section slot detail (clean labels)
+        const sectionDetails = sectionsArr
+          .map((s) => {
+            const slots = s.data.days[dc.day].slice(w.start, w.end + 1).map(humanLabel);
+            const unique = [...new Set(slots)].join(" + ");
+            return `<span class="rank-section-tag">5${s.key}: ${unique}</span>`;
+          })
+          .join(" ");
+
+        const tierClass = SCORE_CLASS[w.score] || "tier-1";
+        const scoreLabel = SCORE_LABEL[w.score] || "";
+
+        return `
+          <div class="squad-window-row">
+            <div class="squad-window-time">
+              <span class="rank-time-badge">${startT} – ${endT}</span>
+              <span class="rank-duration">${durationLabel}</span>
+            </div>
+            <div class="rank-sub" style="margin-top:4px;">${sectionDetails}</div>
+            <div class="tier-pill ${tierClass}" style="margin-top:6px; align-self:flex-start;">${scoreLabel}</div>
+          </div>
+        `;
+      }).join('<div class="window-divider"></div>');
+
+      const totalLabel = dc.totalFreePeriods === 1 ? "1 free slot" : `${dc.totalFreePeriods} free slots`;
+      const overallTierClass = SCORE_CLASS[dc.bestScore] || "tier-1";
+
+      li.innerHTML = `
+        <div class="rank-num">${String(idx + 1).padStart(2, "0")}</div>
+        <div class="rank-main" style="flex:1; min-width:0;">
+          <div class="rank-header" style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+            <span>${dc.day}</span>
+            <span class="rank-total-badge ${overallTierClass}">${totalLabel}</span>
+          </div>
+          <div class="squad-windows-container" style="margin-top:10px;">${windowRows}</div>
+        </div>
+      `;
+      rankList.appendChild(li);
+    });
 
     // Render Multi-Squad Heatmap Matrix
     const matrixTable = document.getElementById("squadOverlayTable");
